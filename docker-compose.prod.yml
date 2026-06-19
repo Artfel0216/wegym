@@ -1,6 +1,6 @@
 services:
   app:
-    image: ghcr.io/artfel0216/_projects/wegym:latest
+    image: ghcr.io/artfel0216/wegym:latest
     build:
       context: .
       dockerfile: Dockerfile
