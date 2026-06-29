@@ -4,7 +4,6 @@ import { handleError, withRateLimit, getIP } from '@/lib/api-utils';
 import { forgotPasswordSchema } from '@/lib/validation';
 import { ValidationError } from '@/lib/errors';
 import { sendEmail, buildResetEmail } from '@/lib/email';
-import { logger } from '@/lib/logger';
 
 export const runtime = 'nodejs';
 

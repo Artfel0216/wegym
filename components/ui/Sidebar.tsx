@@ -46,18 +46,15 @@ export function useSidebar(): SidebarState {
 }
 
 export function SidebarProvider({ children }: { children: React.ReactNode }) {
-  const [collapsed, setCollapsedState] = useState<boolean>(false);
-  const [hydrated, setHydrated] = useState(false);
-
-  useEffect(() => {
+  const [collapsed, setCollapsedState] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored === "1") setCollapsedState(true);
+      return localStorage.getItem(STORAGE_KEY) === "1";
     } catch {
-      // localStorage indisponível
+      return false;
     }
-    setHydrated(true);
-  }, []);
+  });
+  const [hydrated] = useState(() => typeof window !== 'undefined');
 
   const setCollapsed = useCallback((v: boolean) => {
     setCollapsedState(v);
@@ -520,8 +517,7 @@ function ModalitiesFlyout({
   onMouseLeave,
 }: ModalitiesFlyoutProps) {
   const { t } = useTranslations();
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const [mounted] = useState(() => typeof document !== "undefined");
 
   if (!mounted || typeof document === "undefined") return null;
 

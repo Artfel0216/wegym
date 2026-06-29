@@ -1,12 +1,21 @@
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
-import { ConflictError } from '@/lib/errors';
+import { ConflictError, NotFoundError } from '@/lib/errors';
 import type { AthleteRegisterInput } from '@/lib/validation';
 
 export const athleteService = {
-  async register(data: AthleteRegisterInput, personalId: string) {
+  async register(data: AthleteRegisterInput, userId: string) {
     const email = data.email.toLowerCase().trim();
     const cpf = data.cpf.replace(/\D/g, '');
+
+    const personal = await prisma.personalTrainer.findUnique({
+      where: { userId },
+      select: { id: true },
+    });
+
+    if (!personal) {
+      throw new NotFoundError('Personal trainer não encontrado');
+    }
 
     return prisma.$transaction(async (tx) => {
       const existingUser = await tx.user.findFirst({
@@ -33,7 +42,7 @@ export const athleteService = {
       const athlete = await tx.athlete.create({
         data: {
           userId: user.id,
-          personalId: personalId,
+          personalId: personal.id,
           name: data.name.trim(),
           cpf,
           age: data.birthDate
@@ -50,20 +59,20 @@ export const athleteService = {
         select: { id: true, name: true },
       });
 
-      return { athlete, tempPassword };
+      return { athlete };
     }, { timeout: 10000 });
   },
 
-  async list(cursor?: string, take = 20) {
+  async list(personalId: string, cursor?: string, take = 20) {
     const takeClamped = Math.min(take, 50);
     const athletes = await prisma.athlete.findMany({
+      where: { personalId },
       take: takeClamped + 1,
       orderBy: { id: 'desc' },
       ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
       select: {
         id: true,
         name: true,
-        cpf: true,
         experienceLevel: true,
       },
     });

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef, startTransition } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {Timer, RotateCcw, Zap, Trophy, X, Activity, BrainCircuit, Plus, Flame, History,
@@ -14,8 +14,7 @@ import { MODALITY_STORAGE_KEY } from '@/constants/keys';
 import { ALL_AVAILABLE_EXERCISES } from '@/constants/exercises';
 import { ExerciseItem } from '@/components/ExerciseItem/ExerciseItem';
 import { INITIAL_WEEKLY_PLAN } from '@/constants/plans';
-import { getSuggestedCardioBlock } from '@/utils/calculations';
-import type { DayPlan, TrainingModalityId, ModalitySessionEntry, AIChatMessage, Exercise, GpsCoordinate } from '@/types/training';
+import type { DayPlan, TrainingModalityId, ModalitySessionEntry, AIChatMessage, Exercise } from '@/types/training';
 import { parseKmInput, formatDurationHMS } from '@/utils/training-helpers';
 import { AuthGuard } from '@/components/auth/AuthGuard';
 import { useGpsTracker } from '@/hooks/use-gps-tracker';
@@ -61,8 +60,6 @@ const progressBarRef = useRef<HTMLDivElement>(null);
 
 const [activeDay, setActiveDay] = useState(new Date().getDay());
 const [showAI, setShowAI] = useState(false);
-const [visibleExercises, setVisibleExercises] = useState(10);
-
 const [userPlans, setUserPlans] = useState<DayPlan[]>(INITIAL_WEEKLY_PLAN);
 const [completedIds, setCompletedIds] = useState<string[]>([]);
 const [timeLeft, setTimeLeft] = useState(60);
@@ -77,7 +74,7 @@ const trainingModality: TrainingModalityId = (
 const [sessionSec, setSessionSec] = useState(0);
 const [sessionRun, setSessionRun] = useState(false);
 const [distanceKm, setDistanceKm] = useState('');
-const [paceChoice, setPaceChoice] = useState<'min' | 'max' | null>(null);
+const [, setPaceChoice] = useState<'min' | 'max' | null>(null);
 const [sessionCountdownActive, setSessionCountdownActive] = useState(false);
 const [initialCountdownSec, setInitialCountdownSec] = useState(0);
 const [modalityHistory, setModalityHistory] = useState<Partial<Record<TrainingModalityId, ModalitySessionEntry[]>>>({
@@ -88,7 +85,7 @@ const [modalityHistory, setModalityHistory] = useState<Partial<Record<TrainingMo
   combat: [],
 });
 
-const [useGpsMode, setUseGpsMode] = useState(true);
+const [useGpsMode] = useState(true);
 const [showGpsResult, setShowGpsResult] = useState(false);
 const [targetKm, setTargetKm] = useState<number>(0);
 const [selectedTarget, setSelectedTarget] = useState<'min' | 'avg' | 'max' | null>(null);
@@ -97,16 +94,15 @@ const isGpsModality = GPS_MODALITIES.includes(trainingModality);
 const isSwimming = trainingModality === 'swimming';
 const gps = useGpsTracker(trainingModality);
 
-const PACE_ESTIMATES: Record<string, { minSecPerKm: number; avgSecPerKm: number; maxSecPerKm: number }> = {
-  running: { minSecPerKm: 270, avgSecPerKm: 345, maxSecPerKm: 420 },
-  walking: { minSecPerKm: 480, avgSecPerKm: 600, maxSecPerKm: 720 },
-  hiking: { minSecPerKm: 360, avgSecPerKm: 480, maxSecPerKm: 600 },
-  cycling: { minSecPerKm: 112, avgSecPerKm: 144, maxSecPerKm: 200 },
-};
-
 const targetTimes = useMemo(() => {
+  const PACE: Record<string, { minSecPerKm: number; avgSecPerKm: number; maxSecPerKm: number }> = {
+    running: { minSecPerKm: 270, avgSecPerKm: 345, maxSecPerKm: 420 },
+    walking: { minSecPerKm: 480, avgSecPerKm: 600, maxSecPerKm: 720 },
+    hiking: { minSecPerKm: 360, avgSecPerKm: 480, maxSecPerKm: 600 },
+    cycling: { minSecPerKm: 112, avgSecPerKm: 144, maxSecPerKm: 200 },
+  };
   if (!isGpsModality || targetKm <= 0) return null;
-  const pace = PACE_ESTIMATES[trainingModality];
+  const pace = PACE[trainingModality];
   if (!pace) return null;
   return {
     minSec: Math.round(targetKm * pace.minSecPerKm),
@@ -130,7 +126,7 @@ const [bleState, setBleState] = useState<ConnectionState>("idle");
 const [lastHR, setLastHR] = useState<HRData | null>(null);
 const btRef = useRef<BluetoothManager | null>(null);
 const [aiLoading, setAiLoading] = useState(false);
-const [aiResponse, setAiResponse] = useState('');
+const [, setAiResponse] = useState('');
 const [aiStep, setAiStep] = useState<'workout_goal' | 'add_manual' | 'result'>('workout_goal');
 const [chatMessages, setChatMessages] = useState<AIChatMessage[]>([
   {
@@ -144,13 +140,6 @@ const currentModalityMeta = useMemo(
   () => MODALITY_OPTIONS.find((m) => m.id === trainingModality) ?? MODALITY_OPTIONS[0],
   [trainingModality],
 );
-
-const runOrBikeSuggest = useMemo(() => {
-  if (trainingModality !== 'running' && trainingModality !== 'cycling') return null;
-  const km = parseKmInput(distanceKm);
-  if (km == null) return null;
-  return getSuggestedCardioBlock(km, trainingModality);
-}, [distanceKm, trainingModality]);
 
 const currentPlan = useMemo(() => userPlans[activeDay], [userPlans, activeDay]);
 
@@ -168,19 +157,21 @@ useEffect(() => {
 }, [router]);
 
 useEffect(() => {
-  try {
-    const raw = localStorage.getItem(MODALITY_STORAGE_KEY);
-    if (!raw) return;
-    const parsed = JSON.parse(raw) as Record<string, ModalitySessionEntry[]>;
-    setModalityHistory({
-      gym: [],
-      cycling: parsed.cycling ?? [],
-      running: parsed.running ?? [],
-      aerobic: parsed.aerobic ?? [],
-      combat: parsed.combat ?? [],
-    });
-  } catch {
-  }
+  startTransition(() => {
+    try {
+      const raw = localStorage.getItem(MODALITY_STORAGE_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as Record<string, ModalitySessionEntry[]>;
+      setModalityHistory({
+        gym: parsed.gym ?? [],
+        cycling: parsed.cycling ?? [],
+        running: parsed.running ?? [],
+        aerobic: parsed.aerobic ?? [],
+        combat: parsed.combat ?? [],
+      });
+    } catch {
+    }
+  });
 }, []);
 
 useEffect(() => {
@@ -188,6 +179,7 @@ useEffect(() => {
     localStorage.setItem(
       MODALITY_STORAGE_KEY,
       JSON.stringify({
+        gym: modalityHistory.gym,
         cycling: modalityHistory.cycling,
         running: modalityHistory.running,
         aerobic: modalityHistory.aerobic,
@@ -246,13 +238,15 @@ useEffect(() => {
 
 useEffect(() => {
   if (trainingModality === 'gym') return;
-  setSessionRun(false);
-  setSessionSec(0);
-  setDistanceKm('');
-  setPaceChoice(null);
-  setSelectedTarget(null);
-  setSessionCountdownActive(false);
-  setInitialCountdownSec(0);
+  startTransition(() => {
+    setSessionRun(false);
+    setSessionSec(0);
+    setDistanceKm('');
+    setPaceChoice(null);
+    setSelectedTarget(null);
+    setSessionCountdownActive(false);
+    setInitialCountdownSec(0);
+  });
 }, [trainingModality]);
 
 const toggleExercise = useCallback((id: string) => {
@@ -261,21 +255,11 @@ const toggleExercise = useCallback((id: string) => {
 
 const addExerciseToPlan = useCallback((exercise: Exercise) => {
   const newEx = { ...exercise, id: Math.random().toString(36).substr(2, 9) };
-  setUserPlans(prev => prev.map((p, i) => i === activeDay ? { ...p, exercises: [...p.exercises, newEx] } : p));
-  setShowAI(false);
-}, [activeDay]);
-
-const startRunBikeCountdown = useCallback(() => {
-  if (trainingModality !== 'running' && trainingModality !== 'cycling') return;
-  const km = parseKmInput(distanceKm);
-  if (km == null || !paceChoice) return;
-  const block = getSuggestedCardioBlock(km, trainingModality);
-  const total = paceChoice === 'min' ? block.minTimeSec : block.maxTimeSec;
-  setInitialCountdownSec(total);
-  setSessionSec(total);
-  setSessionCountdownActive(true);
-  setSessionRun(true);
-}, [distanceKm, paceChoice, trainingModality]);
+  startTransition(() => {
+    setUserPlans(prev => prev.map((p, i) => i === activeDay ? { ...p, exercises: [...p.exercises, newEx] } : p));
+    setShowAI(false);
+  });
+}, [activeDay, setShowAI]);
 
 const saveModalityEntry = useCallback((entry: ModalitySessionEntry) => {
   setModalityHistory((prev) => ({
@@ -393,7 +377,7 @@ const toggleBLE = useCallback(() => {
   }, t);
   btRef.current = manager;
   manager.scan();
-}, [bleState]);
+}, [bleState, t]);
 
 useEffect(() => {
   return () => { btRef.current?.disconnect(); };
@@ -434,7 +418,7 @@ const sendChatMessage = useCallback(async () => {
   }
 
   setChatLoading(false);
-}, [chatInput]);
+}, [chatInput, t, setChatInput]);
 
 const generateAIWorkout = useCallback(async (goal: 'cut' | 'bulk') => {
   setAiLoading(true);
@@ -459,11 +443,11 @@ const filtered = ALL_AVAILABLE_EXERCISES.filter(ex =>
   setAiResponse(goal === 'bulk' ? t('training.planBulkApplied') : t('training.planCutApplied'));
   setAiStep('result');
   setAiLoading(false);
-}, []);
+}, [t]);
 
 
   return (
-    <AuthGuard>
+    <AuthGuard allowedRoles={['atleta']}>
     <div className="min-h-screen bg-zinc-950 text-zinc-100 pb-24 relative overflow-hidden antialiased font-sans">
       <button
   type="button"

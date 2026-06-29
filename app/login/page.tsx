@@ -110,7 +110,7 @@ const verifyCref = useCallback(async () => {
   } finally {
     setIsVerifyingCref(false);
   }
-}, [formData.cref]);
+  }, [formData.cref, t]);
 
 const handleAuth = useCallback(async (e: React.FormEvent) => {
   e.preventDefault();
@@ -178,7 +178,7 @@ const handleAuth = useCallback(async (e: React.FormEvent) => {
     setError(t('errors.connectionFailed'));
     setIsLoading(false);
   }
-}, [isLogin, formData, userType, crefVerified, router]);
+}, [isLogin, formData, userType, crefVerified, router, t, termsAccepted, privacyAccepted]);
 
   const inputClass = "w-full px-4 py-3 rounded-xl border border-zinc-800 bg-zinc-800/50 text-white focus:border-orange-500 outline-none transition-all";
   const labelClass = "text-xs font-bold text-zinc-400 uppercase ml-1 flex items-center gap-1";

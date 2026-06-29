@@ -1,4 +1,4 @@
-import { genAI } from '@/lib/gemini';
+import { getGenAI } from '@/lib/gemini';
 
 const LIBRARY = {
   peito: [
@@ -109,7 +109,7 @@ const LIBRARY = {
 
 export const chatService = {
   async generateWorkout(message: string, level: string) {
-    const model = genAI.getGenerativeModel({
+    const model = getGenAI().getGenerativeModel({
       model: "gemini-2.5-flash",
       generationConfig: { responseMimeType: "application/json" },
       systemInstruction: `Você é um Personal Trainer de elite especializado em musculação, alta performance e mobilidade.

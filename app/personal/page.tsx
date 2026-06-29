@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AuthGuard } from '@/components/auth/AuthGuard';
 import { useTranslations } from '@/lib/i18n/hook';
 import {
-  Users, Calendar, TrendingUp, CalendarDays, Plus, Award,
+  Users, TrendingUp, CalendarDays, Plus, Award,
   ChevronRight, Target, Dumbbell, Send, X, Bot, Trash2,
   Search, UserPlus
 } from 'lucide-react';
@@ -130,17 +130,15 @@ useEffect(() => {
 type AthleteAPI = {
   id: string;
   name: string;
-  cpf: string;
   experienceLevel?: string;
   trainingPlans?: { day: string; exercises: unknown[] }[];
   progressEntries?: { date: string; weight: string; muscleMass: string; bodyFat: string; note: string }[];
 };
 
-function formatAthlete(a: AthleteAPI) {
+const formatAthlete = useCallback((a: AthleteAPI) => {
   return {
     id: a.id,
     name: a.name,
-    cpf: a.cpf,
     email: '',
     phone: '',
     birthDate: '',
@@ -168,10 +166,10 @@ function formatAthlete(a: AthleteAPI) {
       weight: p.weight ?? '',
       muscleMass: p.muscleMass ?? '',
       bodyFat: p.bodyFat ?? '',
-      note: p.note ?? ''
-    }))
+      note: p.note ?? '',
+    })),
   };
-}
+}, []);
 
 useEffect(() => {
   const controller = new AbortController();
@@ -197,36 +195,36 @@ useEffect(() => {
 
   fetchStudents();
   return () => controller.abort();
-}, []);
+}, [formatAthlete]);
 
-useEffect(() => {
-  const handleScroll = async () => {
-    if (loadingMore || !hasMore || !cursor) return;
+  useEffect(() => {
+    const handleScroll = async () => {
+      if (loadingMore || !hasMore || !cursor) return;
 
-    if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 200) {
-      setLoadingMore(true);
+      if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 200) {
+        setLoadingMore(true);
 
-      try {
-        const res = await fetch(`/api/athletes?cursor=${cursor}`, { cache: 'no-store' });
-        if (!res.ok) return;
+        try {
+          const res = await fetch(`/api/athletes?cursor=${cursor}`, { cache: 'no-store' });
+          if (!res.ok) return;
 
-        const data = await res.json();
-        const formatted = (data.data ?? []).map(formatAthlete);
+          const data = await res.json();
+          const formatted = (data.data ?? []).map(formatAthlete);
 
-        setStudents((prev) => [...prev, ...formatted]);
-        setCursor(data.nextCursor ?? null);
-        setHasMore(!!data.nextCursor);
-      } catch (err) {
-        console.error("Erro ao carregar mais alunos:", err);
+          setStudents((prev) => [...prev, ...formatted]);
+          setCursor(data.nextCursor ?? null);
+          setHasMore(!!data.nextCursor);
+        } catch (err) {
+          console.error("Erro ao carregar mais alunos:", err);
+        }
+
+        setLoadingMore(false);
       }
+    };
 
-      setLoadingMore(false);
-    }
-  };
-
-  window.addEventListener('scroll', handleScroll);
-  return () => window.removeEventListener('scroll', handleScroll);
-}, [cursor, loadingMore, hasMore]);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [cursor, loadingMore, hasMore, formatAthlete]);
 
 useEffect(() => {
   const view = searchParams.get('view');
@@ -249,7 +247,6 @@ useEffect(() => {
     setIsChatOpen(false);
     setActiveMobileTab('home');
   }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
 }, [searchParams]);
 
 const openStudentProfile = (studentId: string) => {
@@ -441,7 +438,7 @@ const handleChat = async () => {
 };
 
   return (
-    <AuthGuard>
+    <AuthGuard allowedRoles={['personal']}>
     <div className="min-h-screen bg-zinc-950 text-zinc-100 pb-24 relative overflow-hidden antialiased font-sans">
       <div className="fixed top-[-10%] left-[-5%] w-96 h-96 bg-orange-600/5 rounded-full blur-[120px] pointer-events-none" />
 

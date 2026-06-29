@@ -9,6 +9,7 @@ export default function ErrorPage({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  void error;
   const { t } = useTranslations();
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-zinc-950 p-4">

@@ -21,7 +21,7 @@ export async function POST(req: Request) {
     // Invalidate athlete list cache
     await cache.delPattern('athletes:list:*');
 
-    return NextResponse.json(result, { status: 201 });
+    return NextResponse.json(result.athlete, { status: 201 });
   } catch (error) {
     return handleError(error);
   }

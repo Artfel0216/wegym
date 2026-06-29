@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { handleError, json, created } from '@/lib/api-utils';
 import { NotFoundError, UnauthorizedError, ValidationError } from '@/lib/errors';
 

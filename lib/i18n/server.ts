@@ -10,9 +10,6 @@ export async function getLocale(): Promise<Locale> {
   const cookie = cookieStore.get(COOKIE_NAME)?.value
   if (cookie && isLocale(cookie)) return cookie
 
-  const headers = Object.fromEntries(
-    (await cookies()).getAll().map((c) => [c.name, c.value]),
-  )
   const negotiatorHeaders: Record<string, string> = {}
   try {
     const { headers: reqHeaders } = await import('next/headers')

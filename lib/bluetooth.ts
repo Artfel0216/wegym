@@ -2,8 +2,6 @@ const HR_SERVICE = "0000180d-0000-1000-8000-00805f9b34fb";
 const HR_MEASUREMENT = "00002a37-0000-1000-8000-00805f9b34fb";
 const BATTERY_SERVICE = "0000180f-0000-1000-8000-00805f9b34fb";
 const BATTERY_LEVEL = "00002a19-0000-1000-8000-00805f9b34fb";
-const DEVICE_NAME = "00002a00-0000-1000-8000-00805f9b34fb";
-
 export type HRData = {
   bpm: number;
   sensorContact: boolean;
@@ -158,7 +156,8 @@ export class BluetoothManager {
           id: this.device.id,
           battery: this._battery,
         });
-      } catch {
+      } catch (err) {
+        console.error('[Bluetooth] Battery service error:', err);
       }
 
       this.reconnectAttempts = 0;
@@ -185,14 +184,18 @@ export class BluetoothManager {
         if (this.onHRChange) {
           this.hrCharacteristic.removeEventListener("characteristicvaluechanged", this.onHRChange);
         }
-      } catch { /* ignorar */ }
+      } catch (err) {
+        console.error('[Bluetooth] Stop notifications error:', err);
+      }
       this.hrCharacteristic = null;
     }
     if (this.device && this.onDisconnected) {
       this.device.removeEventListener("gattserverdisconnected", this.onDisconnected);
     }
     if (this.server) {
-      try { this.server.disconnect(); } catch { /* ignorar */ }
+      try { this.server.disconnect(); } catch (err) {
+        console.error('[Bluetooth] Disconnect error:', err);
+      }
       this.server = null;
     }
     this.device = null;

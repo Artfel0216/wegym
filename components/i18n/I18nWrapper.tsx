@@ -37,18 +37,21 @@ type Props = {
 }
 
 export function I18nWrapper({ children }: Props) {
-  const [locale, setLocale] = useState<Locale>(defaultLocale)
+  const [locale, setLocale] = useState<Locale>(() => {
+    if (typeof window === 'undefined') return defaultLocale;
+    const detected = getCookie(COOKIE_NAME);
+    if (detected && isLocale(detected)) return detected;
+    return defaultLocale;
+  });
   const [translations, setTranslations] = useState<TranslationDict>(
     defaultTranslations as unknown as TranslationDict,
   )
 
   useEffect(() => {
-    const detected = getCookie(COOKIE_NAME)
-    if (detected && isLocale(detected) && detected !== defaultLocale) {
-      setLocale(detected)
-      loadTranslations(detected).then(setTranslations)
+    if (locale !== defaultLocale) {
+      loadTranslations(locale).then(setTranslations)
     }
-  }, [])
+  }, [locale])
 
   const handleLocaleChange = async (newLocale: Locale) => {
     setLocale(newLocale)

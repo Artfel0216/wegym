@@ -1,8 +1,8 @@
 import { 
   Dumbbell, Bike, Footprints, HeartPulse, Sword, 
   Waves, Mountain, Target, Trophy, Timer, 
-  Flame, Trees, User, Users, Scaling, 
-  Zap, Disc, Waves as SwimIcon, HelpCircle
+  Flame, User, Users, Scaling, 
+  Zap, Disc, HelpCircle
 } from 'lucide-react';
 
 export const MODALITY_OPTIONS = [

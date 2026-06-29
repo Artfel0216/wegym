@@ -1,7 +1,14 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-if (!process.env.GEMINI_API_KEY) {
-  throw new Error("GEMINI_API_KEY não definida no .env");
-}
+let genAIInstance: GoogleGenerativeAI | null = null;
 
-export const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+export function getGenAI(): GoogleGenerativeAI {
+  if (!genAIInstance) {
+    const key = process.env.GEMINI_API_KEY;
+    if (!key) {
+      throw new Error("GEMINI_API_KEY não definida no .env");
+    }
+    genAIInstance = new GoogleGenerativeAI(key);
+  }
+  return genAIInstance;
+}

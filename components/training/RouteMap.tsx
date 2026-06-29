@@ -10,7 +10,7 @@ interface RouteMapProps {
 
 export default function RouteMap({ coordinates, height = 200, interactive = true }: RouteMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
-  const instanceRef = useRef<any>(null);
+  const instanceRef = useRef<L.Map | null>(null);
 
   useEffect(() => {
     if (!mapRef.current || coordinates.length < 2) return;

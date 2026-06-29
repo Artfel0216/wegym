@@ -81,6 +81,17 @@ export const chatSchema = z.object({
   level: z.enum(['Iniciante', 'Intermediário', 'Avançado']).optional(),
 });
 
+export const chatResponseSchema = z.object({
+  text: z.string().min(1, 'Texto da resposta obrigatório'),
+  goal: z.string().min(1, 'Objetivo obrigatório'),
+  exercises: z.array(z.object({
+    name: z.string().min(1),
+    sets: z.number().int().positive(),
+    reps: z.string().min(1),
+    load: z.string().min(1),
+  })).min(1, 'Pelo menos um exercício é obrigatório'),
+});
+
 export type RegisterInput = z.input<typeof registerSchema>;
 export type AthleteRegisterInput = z.input<typeof athleteRegisterSchema>;
 export type ProfileUpdateInput = z.input<typeof profileUpdateSchema>;

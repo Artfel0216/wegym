@@ -12,7 +12,7 @@ let redisClient: Awaited<ReturnType<typeof createRedisClient>> | null = null;
 async function createRedisClient() {
   const { createClient } = await import('redis');
   const client = createClient({ url: redisUrl() });
-  client.on('error', () => { redisClient = null; });
+  client.on('error', (err) => { console.error('[Cache] Redis error:', err); redisClient = null; });
   await client.connect();
   return client;
 }
@@ -23,7 +23,8 @@ async function getRedis() {
   try {
     redisClient = await createRedisClient();
     return redisClient;
-  } catch {
+  } catch (err) {
+    console.error('[Cache] Failed to connect to Redis:', err);
     redisClient = null;
     return null;
   }

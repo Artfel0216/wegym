@@ -5,6 +5,7 @@ import { ChevronLeft, ShieldCheck, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { useTranslations } from '@/lib/i18n/hook';
+import { AuthGuard } from '@/components/auth/AuthGuard';
 
 const CardPayment = dynamic(
   () => import('@mercadopago/sdk-react').then((mod) => mod.CardPayment),
@@ -50,11 +51,20 @@ export default function PaymentPage() {
     paymentMethods: { maxInstallments: 1 }
   }), []);
 
-  const onSubmit = async (formData: any) => {
-    console.log("Dados do formulário prontos:", formData);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const onSubmit = async (_formData: {
+    token: string;
+    issuer_id: string;
+    payment_method_id: string;
+    transaction_amount: number;
+    installments: number;
+    payer: { email?: string };
+  }) => {
+    // TODO: implementar processamento do pagamento
   };
 
   return (
+    <AuthGuard>
     <div className="min-h-screen bg-zinc-950 text-white p-6 font-sans">
       <header className="flex items-center justify-between mb-10">
         <button 
@@ -114,5 +124,6 @@ export default function PaymentPage() {
         </div>
       </main>
     </div>
+    </AuthGuard>
   );
 }

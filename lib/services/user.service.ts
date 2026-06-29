@@ -85,7 +85,28 @@ export const userService = {
   async getProfile(userId: string) {
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      include: { athlete: true, personal: true },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        createdAt: true,
+        athlete: {
+          select: {
+            id: true,
+            name: true,
+            city: true,
+            state: true,
+            age: true,
+            heightCm: true,
+            weightKg: true,
+            sex: true,
+            experienceLevel: true,
+          },
+        },
+        personal: {
+          select: { id: true, name: true, cref: true },
+        },
+      },
     });
     if (!user) throw new NotFoundError('Usuário');
 
@@ -120,7 +141,12 @@ export const userService = {
   async updateProfile(userId: string, data: { name?: string; weightKg?: number; heightCm?: number }) {
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      include: { athlete: true, personal: true },
+      select: {
+        id: true,
+        role: true,
+        athlete: { select: { id: true, name: true, weightKg: true, heightCm: true } },
+        personal: { select: { id: true, name: true } },
+      },
     });
     if (!user) throw new NotFoundError('Usuário');
 
@@ -150,7 +176,33 @@ export const userService = {
   async exportData(userId: string) {
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      include: { athlete: true, personal: true },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        termsAcceptedAt: true,
+        privacyAcceptedAt: true,
+        dataConsentAt: true,
+        createdAt: true,
+        athlete: {
+          select: {
+            name: true,
+            cpf: true,
+            cep: true,
+            city: true,
+            state: true,
+            age: true,
+            sex: true,
+            heightCm: true,
+            weightKg: true,
+            experienceLevel: true,
+            injury: true,
+            healthIssues: true,
+            medications: true,
+          },
+        },
+        personal: { select: { name: true, cref: true } },
+      },
     });
     if (!user) throw new NotFoundError('Usuário');
 
@@ -192,7 +244,12 @@ export const userService = {
     await prisma.$transaction(async (tx) => {
       const user = await tx.user.findUnique({
         where: { id: userId },
-        include: { athlete: true, personal: true },
+        select: {
+          id: true,
+          role: true,
+          athlete: { select: { id: true } },
+          personal: { select: { id: true, name: true } },
+        },
       });
       if (!user) throw new NotFoundError('Usuário');
 

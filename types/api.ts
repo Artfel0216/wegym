@@ -26,7 +26,6 @@ export interface ApiResponse<T> {
 export interface AthleteListItem {
   id: string;
   name: string;
-  cpf: string;
   experienceLevel: string;
   trainingPlans?: unknown[];
   progressEntries?: unknown[];

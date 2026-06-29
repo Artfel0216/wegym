@@ -36,7 +36,7 @@ const TARGET_LABELS: Record<string, { color: string; labelKey: string }> = {
   max: { color: 'text-amber-400', labelKey: 'training.maxTime' },
 };
 
-export default function GpsSessionResult({ snapshot, targetTimes, targetKm, selectedTarget, onSave, onDiscard, t }: GpsSessionResultProps) {
+export default function GpsSessionResult({ snapshot, targetTimes, selectedTarget, onSave, onDiscard, t }: GpsSessionResultProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [sharing, setSharing] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -54,8 +54,7 @@ export default function GpsSessionResult({ snapshot, targetTimes, targetKm, sele
     achievement = { label: t('training.achievementGood'), emoji: '👏', color: 'text-orange-400' };
   }
 
-  const targetLabel = selectedTarget ? TARGET_LABELS[selectedTarget] : null;
-  const selectedTargetSec = selectedTarget && targetTimes ? targetTimes[`${selectedTarget}Sec`] : null;
+
 
   const handleShare = async () => {
     setSharing(true);

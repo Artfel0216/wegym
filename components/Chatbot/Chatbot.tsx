@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Send, Dumbbell, Sparkles, Trophy, ChevronRight, Activity } from "lucide-react";
+import { Send, Dumbbell, Sparkles, Trophy, Activity } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslations } from '@/lib/i18n/hook';
 

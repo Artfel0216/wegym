@@ -1,4 +1,4 @@
-import { Exercise, DayPlan } from '@/types/training';
+import { Exercise } from '@/types/training';
 
 const createExercise = (id: string, name: string, muscle: string, sets: number | string, reps: string, obs: string): Exercise => ({
   id, name, muscle, sets, reps, obs, gifUrl: undefined

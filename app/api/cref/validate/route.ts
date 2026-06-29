@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { validateCref } from '@/lib/cref';
-import { handleError } from '@/lib/api-utils';
+import { handleError, withRateLimit } from '@/lib/api-utils';
 import { ValidationError, ConflictError } from '@/lib/errors';
 import { prisma } from '@/lib/prisma';
 
@@ -8,6 +8,8 @@ export const runtime = 'nodejs';
 
 export async function POST(req: Request) {
   try {
+    const rateLimitResponse = await withRateLimit(req, 'cref:validate');
+    if (rateLimitResponse) return rateLimitResponse;
     const body = await req.json();
     const { cref } = body;
     const validation = validateCref(cref);

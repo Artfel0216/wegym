@@ -1,19 +1,16 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { getToken } from 'next-auth/jwt';
 import { match } from '@formatjs/intl-localematcher';
 import Negotiator from 'negotiator';
 import { locales, defaultLocale, COOKIE_NAME } from '@/lib/i18n/config';
 
-const PUBLIC_ROUTES = new Set(['/', '/login', '/register']);
+const PUBLIC_ROUTES = new Set(['/', '/login', '/reset-password', '/privacy', '/offline']);
 
-const SESSION_COOKIES = [
-  'next-auth.session-token',
-  '__Secure-next-auth.session-token',
-  'authjs.session-token',
-  '__Secure-authjs.session-token',
-];
+const ATHLETE_ROUTES = new Set(['/home', '/training', '/stats']);
+const PERSONAL_ROUTES = new Set(['/personal']);
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Skip for static and API - pass through immediately
@@ -43,17 +40,32 @@ export function proxy(request: NextRequest) {
   }
 
   // --- Page authentication ---
-  const hasSession = SESSION_COOKIES.some(name => request.cookies.has(name));
   const isPublic = PUBLIC_ROUTES.has(pathname);
 
-  if (!hasSession && !isPublic) {
+  // Try to get session token to check role
+  const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET }).catch(() => null);
+  const isAuthenticated = !!token;
+
+  if (!isAuthenticated && !isPublic) {
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('callbackUrl', pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  if (hasSession && isPublic && pathname !== '/') {
-    return NextResponse.redirect(new URL('/', request.url));
+  // Redirect authenticated users away from public pages (except /privacy, /offline, /reset-password)
+  if (isAuthenticated && isPublic && pathname === '/login') {
+    const dashboard = token?.role === 'personal' ? '/personal' : '/home';
+    return NextResponse.redirect(new URL(dashboard, request.url));
+  }
+
+  // Role-based route protection
+  if (isAuthenticated && token?.role) {
+    if (ATHLETE_ROUTES.has(pathname) && token.role !== 'atleta') {
+      return NextResponse.redirect(new URL('/personal', request.url));
+    }
+    if (PERSONAL_ROUTES.has(pathname) && token.role !== 'personal') {
+      return NextResponse.redirect(new URL('/home', request.url));
+    }
   }
 
   return response ?? NextResponse.next();

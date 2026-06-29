@@ -53,7 +53,7 @@ export default function ResetPasswordPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [token, password, confirmPassword]);
+  }, [token, password, confirmPassword, t]);
 
   if (!token) {
     return (

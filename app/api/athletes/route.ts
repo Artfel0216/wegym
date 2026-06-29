@@ -1,11 +1,21 @@
 import { requireRole, handleError, json, cache } from '@/lib/api-utils';
 import { athleteService } from '@/lib/services/athlete.service';
+import { prisma } from '@/lib/prisma';
+import { NotFoundError } from '@/lib/errors';
 
 export const runtime = 'nodejs';
 
 export async function GET(req: Request) {
   try {
-    await requireRole(['personal']);
+    const session = await requireRole(['personal']);
+    const personal = await prisma.personalTrainer.findUnique({
+      where: { userId: session.user.id },
+      select: { id: true },
+    });
+
+    if (!personal) {
+      throw new NotFoundError('Personal trainer não encontrado');
+    }
 
     const { searchParams } = new URL(req.url);
     const take = Math.min(Number(searchParams.get('take')) || 20, 50);
@@ -14,11 +24,11 @@ export async function GET(req: Request) {
     const includeProgress = searchParams.get('progress') === '1';
     const includeClasses = searchParams.get('classes') === '1';
 
-    const cacheKey = `athletes:list:${take}:${cursorParam ?? ''}:${includePlans ? '1' : '0'}${includeProgress ? '1' : '0'}${includeClasses ? '1' : '0'}`;
+    const cacheKey = `athletes:list:${personal.id}:${take}:${cursorParam ?? ''}:${includePlans ? '1' : '0'}${includeProgress ? '1' : '0'}${includeClasses ? '1' : '0'}`;
 
     const result = await cache.getOrSet(
       cacheKey,
-      () => athleteService.list(cursorParam ?? undefined, take),
+      () => athleteService.list(personal.id, cursorParam ?? undefined, take),
       30,
     );
 

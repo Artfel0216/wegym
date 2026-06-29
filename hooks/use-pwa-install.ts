@@ -20,10 +20,6 @@ export function usePWAInstall() {
 
     window.addEventListener("beforeinstallprompt", handler);
 
-    if (window.matchMedia("(display-mode: standalone)").matches) {
-      setIsInstallable(false);
-    }
-
     return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
 

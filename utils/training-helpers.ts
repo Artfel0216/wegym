@@ -1,4 +1,4 @@
-import { TrainingModalityId, Exercise, DayPlan, ModalitySessionEntry } from '@/types/training';
+import { TrainingModalityId } from '@/types/training';
 
 export const formatClock = (totalSeconds: number): string => {
   const seconds = Math.max(0, totalSeconds);

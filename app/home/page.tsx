@@ -8,6 +8,7 @@ import {
   Flame, Clock, Trophy, MapPin, Activity,
   ChevronRight, Loader2, Sparkles, Calendar, Zap, History, Dumbbell, Wind, Bike,
 } from 'lucide-react';
+import { MODALITY_STORAGE_KEY } from '@/constants/keys';
 import {
   buildHomeStats,
   formatRelative,
@@ -40,7 +41,7 @@ type ModalityOption = {
 const QUICK_MODALITY_IDS = ['gym', 'running', 'cycling', 'aerobic'] as const;
 
 // Key used to persist sessions in localStorage
-const MODALITY_STORAGE_KEY = 'wegym:modality_sessions';
+// (shared with training page via constants/keys.ts)
 
 export default function HomePage() {
   const router = useRouter();
@@ -48,12 +49,12 @@ export default function HomePage() {
   const [profile, setProfile] = useState<ProfileLite | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const { t } = useTranslations();
-  const modalityOptions: ModalityOption[] = [
+  const modalityOptions: ModalityOption[] = useMemo(() => [
     { id: 'gym', tKey: 'modality.gym', label: 'Musculação', Icon: Dumbbell },
     { id: 'running', tKey: 'modality.running', label: 'Corrida', Icon: Activity },
     { id: 'cycling', tKey: 'modality.cycling', label: 'Ciclismo', Icon: Bike },
     { id: 'aerobic', tKey: 'modality.aerobic', label: 'Aeróbico', Icon: Wind },
-  ];
+  ], []);
 
   const STAT_FORMATTERS = {
     hours: (sec: number) => {
@@ -106,11 +107,11 @@ export default function HomePage() {
       }
     })();
     return () => controller.abort();
-  }, [router]);
+  }, [router, t]);
 
   const firstName = useMemo(
     () => (profile?.name ? profile.name.split(' ')[0] : t('common.athlete')),
-    [profile?.name],
+    [profile?.name, t],
   );
 
   const greeting = useMemo(() => {
@@ -119,13 +120,13 @@ export default function HomePage() {
     if (h < 12) return t('greeting.morning');
     if (h < 19) return t('greeting.afternoon');
     return t('greeting.night');
-  }, []);
+  }, [t]);
 
   const quickModalities = useMemo(
     () =>
       QUICK_MODALITY_IDS.map((id) => modalityOptions.find((m) => m.id === id))
         .filter((m): m is (typeof modalityOptions)[number] => !!m),
-    [],
+    [modalityOptions],
   );
 
   const goModality = (id: string) => {
@@ -142,7 +143,7 @@ export default function HomePage() {
   }, [stats]);
 
   return (
-    <AuthGuard>
+    <AuthGuard allowedRoles={['atleta']}>
     <div className="min-h-screen bg-zinc-950 text-zinc-100 pb-24 relative overflow-hidden antialiased font-sans">
       <div className="fixed top-[-10%] right-[-5%] w-96 h-96 bg-orange-600/10 rounded-full blur-[140px] pointer-events-none" />
       <div className="fixed bottom-[-10%] left-[-5%] w-80 h-80 bg-blue-600/5 rounded-full blur-[120px] pointer-events-none" />

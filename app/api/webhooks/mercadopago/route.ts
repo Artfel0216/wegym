@@ -8,14 +8,12 @@ export async function POST(request: Request) {
     const paymentId = body.data?.id ?? body.id;
 
     if (paymentId) {
-      // Em produção: atualizar status do pagamento via API do Mercado Pago
-      if (process.env.NODE_ENV !== 'production') {
-        console.log(`[Webhook] Payment ${paymentId} - ${body.action ?? 'notification'}`);
-      }
+      console.error(`[Webhook] Payment ${paymentId} - ${body.action ?? 'notification'}`);
     }
 
     return NextResponse.json({ received: true });
-  } catch {
-    return NextResponse.json({ received: true }, { status: 200 });
+  } catch (error) {
+    console.error('[Webhook] Erro ao processar notificação:', error);
+    return NextResponse.json({ received: false }, { status: 500 });
   }
 }

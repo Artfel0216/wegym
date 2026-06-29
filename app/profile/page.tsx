@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState, startTransition } from "react";
 import Link from "next/link";
 import { useTranslations } from "@/lib/i18n/hook";
 import { useRouter } from "next/navigation";
@@ -23,7 +23,6 @@ import {
   Ruler,
   Settings,
   ShieldCheck,
-  Smartphone,
   Trophy,
   User as UserIcon,
   Weight,
@@ -203,10 +202,12 @@ export default function ProfilePage() {
       setLoadError(t('profile.connectionError'));
       setLoadState("error");
     }
-  }, [router]);
+  }, [router, t]);
 
   useEffect(() => {
-    void loadProfile();
+    startTransition(() => {
+      void loadProfile();
+    });
   }, [loadProfile]);
 
   useEffect(() => {
@@ -229,7 +230,7 @@ export default function ProfilePage() {
         triggerToast(t('profile.saveError'), "info");
       }
     },
-    [userData, triggerToast],
+    [userData, triggerToast, t],
   );
 
   const startEdit = useCallback(
@@ -278,7 +279,7 @@ export default function ProfilePage() {
       }
     }
     setEditingField(null);
-  }, [editingField, draft, userData, persistField, triggerToast]);
+  }, [editingField, draft, userData, persistField, triggerToast, t]);
 
   const imc = useMemo(() => {
     if (!userData || userData.pesoKg <= 0 || userData.alturaCm <= 0) return null;
@@ -328,7 +329,7 @@ export default function ProfilePage() {
 
     btRef.current = manager;
     manager.scan();
-  }, [isSyncing, bleState, triggerToast]);
+  }, [isSyncing, bleState, triggerToast, t]);
 
   if (loadState === "error") {
     return (
@@ -663,7 +664,7 @@ interface AccountSectionProps {
   lastHR: HRData | null;
 }
 
-function AccountSection({ isPro, isSyncing, onUpgrade }: AccountSectionProps) {
+function AccountSection({ isPro, onUpgrade }: AccountSectionProps) {
   const { t } = useTranslations();
   return (
     <section className="bg-zinc-900/40 border border-white/5 rounded-4xl p-6 sm:p-8">
@@ -1043,36 +1044,6 @@ function PlanRow({ isPro, onUpgrade }: { isPro: boolean; onUpgrade: () => void }
         </button>
       )}
     </div>
-  );
-}
-
-function SyncRow({ isSyncing, onSync }: { isSyncing: boolean; onSync: () => void }) {
-  const { t } = useTranslations();
-  return (
-    <button
-      type="button"
-      onClick={onSync}
-      disabled={isSyncing}
-      className="w-full rounded-4xl border border-white/5 bg-zinc-950/60 hover:border-white/10 p-4 sm:p-5 flex items-center gap-4 text-left cursor-pointer transition-colors disabled:cursor-wait disabled:opacity-80"
-    >
-      <div className="w-12 h-12 rounded-2xl bg-white/5 text-zinc-200 flex items-center justify-center shrink-0">
-        {isSyncing ? (
-          <Loader2 size={20} className="animate-spin text-orange-500" />
-        ) : (
-          <Smartphone size={20} />
-        )}
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-[9px] font-black uppercase tracking-[0.25em] text-zinc-500">
-          {t('profile.devices')}
-        </p>
-        <p className="text-sm font-black italic uppercase text-white tracking-tight truncate">
-          {isSyncing ? t('profile.syncing') : t('profile.syncNow')}
-        </p>
-        <p className="text-[10px] text-zinc-500 mt-0.5 truncate">{t('profile.healthPlatforms')}</p>
-      </div>
-      <ChevronRight size={16} className="text-zinc-600 shrink-0" />
-    </button>
   );
 }
 
