@@ -14,7 +14,7 @@ export const userService = {
       select: { id: true },
     });
     if (existingUser) {
-      throw new ConflictError('E-mail já cadastrado.');
+      throw new ConflictError('Não foi possível realizar o cadastro. Verifique os dados e tente novamente.');
     }
 
     const passwordHash = await bcrypt.hash(data.password, 10);

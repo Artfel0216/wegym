@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import React, { useState, useEffect, useMemo, useCallback, useRef, startTransition } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -261,11 +263,27 @@ const addExerciseToPlan = useCallback((exercise: Exercise) => {
   });
 }, [activeDay, setShowAI]);
 
-const saveModalityEntry = useCallback((entry: ModalitySessionEntry) => {
+const saveModalityEntry = useCallback(async (entry: ModalitySessionEntry) => {
   setModalityHistory((prev) => ({
     ...prev,
     [trainingModality]: [entry, ...(prev[trainingModality] ?? [])].slice(0, 50),
   }));
+
+  try {
+    await fetch('/api/workout-sessions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        modality: trainingModality,
+        durationSec: entry.durationSec,
+        distanceKm: entry.distanceKm,
+        avgPaceSecPerKm: entry.avgPaceSecPerKm,
+        steps: entry.steps,
+      }),
+    });
+  } catch {
+    // silent fail - session is saved in localStorage as fallback
+  }
 }, [trainingModality]);
 
 const finalizeModalitySession = useCallback(() => {
@@ -336,7 +354,7 @@ const finalizeModalitySession = useCallback(() => {
   saveModalityEntry,
 ]);
 
-const handleSaveGpsSession = useCallback(() => {
+const handleSaveGpsSession = useCallback(async () => {
   const snap = gps.gpsSnapshot;
   if (!snap) return;
   const entry: ModalitySessionEntry = {
@@ -349,11 +367,28 @@ const handleSaveGpsSession = useCallback(() => {
     coordinates: snap.coordinates,
   };
   saveModalityEntry(entry);
+
+  try {
+    await fetch('/api/gps-sessions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        modality: trainingModality,
+        distanceKm: snap.distanceKm,
+        durationSec: snap.durationSec,
+        avgPaceSecPerKm: snap.avgPaceSecPerKm,
+        steps: snap.steps,
+      }),
+    });
+  } catch {
+    // silent fail
+  }
+
   setShowGpsResult(false);
   gps.resetGps();
   setSessionSec(0);
   setSessionRun(false);
-}, [gps, saveModalityEntry]);
+}, [gps, saveModalityEntry, trainingModality]);
 
 const handleDiscardGpsSession = useCallback(() => {
   setShowGpsResult(false);
@@ -1022,7 +1057,7 @@ const filtered = ALL_AVAILABLE_EXERCISES.filter(ex =>
                     {aiStep === 'result' && (
                       <div className="space-y-6">
                         <div className="bg-zinc-950 p-6 rounded-3xl border border-white/10 max-h-72 overflow-y-auto custom-scrollbar">
-                          <p className="text-zinc-300 text-xs leading-relaxed whitespace-pre-line font-mono">{}</p>
+                          <p className="text-zinc-300 text-xs leading-relaxed whitespace-pre-line font-mono">{t('training.planBulkApplied')}</p>
                         </div>
                         <button onClick={() => setShowAI(false)} className="w-full py-4 bg-white text-black font-black uppercase italic rounded-2xl hover:bg-orange-500 hover:text-white transition-all cursor-pointer">{t('training.confirmPlan')}</button>
                       </div>

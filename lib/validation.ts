@@ -57,6 +57,11 @@ export const athleteRegisterSchema = z.object({
   cep: z.string().min(8).max(9),
   city: z.string().max(100),
   state: ufSchema,
+  phone: z.string().optional(),
+  emergencyContact: z.string().optional(),
+  objective: z.string().optional(),
+  observations: z.string().optional(),
+  availableDays: z.string().optional(),
 });
 
 export const profileUpdateSchema = z.object({
@@ -71,6 +76,7 @@ export const paymentSchema = z.object({
   installments: z.number().int().min(1).max(12),
   payment_method_id: z.string().min(1),
   issuer_id: z.number().int().positive().optional(),
+  description: z.string().optional(),
   payer: z.object({
     email: z.string().email('Email do pagador inválido'),
   }),

@@ -1,21 +1,90 @@
-const CACHE = "wegym-v1";
+const CACHE = "wegym-v3";
 const PRECACHE_URLS = ["/", "/offline"];
+
+const STATIC_CACHE = "wegym-static";
+const API_CACHE = "wegym-api";
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE).then((cache) => cache.addAll(PRECACHE_URLS)).then(() => self.skipWaiting()),
+    caches.open(CACHE)
+      .then((cache) => cache.addAll(PRECACHE_URLS))
+      .then(() => self.skipWaiting()),
   );
 });
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim()),
+    caches.keys()
+      .then((keys) => Promise.all(
+        keys.filter((k) => k !== CACHE && k !== STATIC_CACHE && k !== API_CACHE)
+          .map((k) => caches.delete(k)),
+      ))
+      .then(() => self.clients.claim()),
   );
 });
 
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
+
+  const { pathname } = new URL(event.request.url);
+
+  if (pathname.startsWith("/_next/static/") || pathname.startsWith("/static/")) {
+    event.respondWith(staticStrategy(event.request));
+    return;
+  }
+
+  if (pathname === "/manifest.json" || pathname === "/favicon.ico" || pathname === "/sw.js") {
+    event.respondWith(staticStrategy(event.request));
+    return;
+  }
+
+  if (/^\/icon-\d+\.(png|jpg|jpeg|svg|webp)$/.test(pathname)) {
+    event.respondWith(staticStrategy(event.request));
+    return;
+  }
+
+  if (pathname.startsWith("/api/")) {
+    event.respondWith(networkFirst(event.request, API_CACHE, 60));
+    return;
+  }
+
+  if (pathname === "/" || pathname.startsWith("/home") || pathname.startsWith("/personal")) {
+    event.respondWith(networkFirst(event.request, CACHE, 30));
+    return;
+  }
+
   event.respondWith(
-    fetch(event.request).catch(() => caches.match(event.request).then((r) => r || caches.match("/offline"))),
+    fetch(event.request)
+      .catch(() => caches.match(event.request).then((r) => r || caches.match("/offline"))),
   );
 });
+
+async function staticStrategy(request) {
+  const cached = await caches.match(request, { cacheName: STATIC_CACHE });
+  if (cached) return cached;
+  const response = await fetch(request);
+  if (response.ok) {
+    const clone = response.clone();
+    caches.open(STATIC_CACHE).then((cache) => cache.put(request, clone));
+  }
+  return response;
+}
+
+async function networkFirst(request, cacheName, ttlSeconds) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 3000);
+
+  try {
+    const response = await fetch(request, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    if (response.ok) {
+      const clone = response.clone();
+      caches.open(cacheName).then((cache) => cache.put(request, clone));
+    }
+    return response;
+  } catch {
+    clearTimeout(timeoutId);
+    const cached = await caches.match(request, { cacheName });
+    return cached || caches.match("/offline");
+  }
+}

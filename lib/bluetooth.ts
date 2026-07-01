@@ -1,3 +1,5 @@
+import { logger } from './logger';
+
 const HR_SERVICE = "0000180d-0000-1000-8000-00805f9b34fb";
 const HR_MEASUREMENT = "00002a37-0000-1000-8000-00805f9b34fb";
 const BATTERY_SERVICE = "0000180f-0000-1000-8000-00805f9b34fb";
@@ -157,7 +159,7 @@ export class BluetoothManager {
           battery: this._battery,
         });
       } catch (err) {
-        console.error('[Bluetooth] Battery service error:', err);
+        logger.error({ err }, '[Bluetooth] Battery service error');
       }
 
       this.reconnectAttempts = 0;
@@ -185,7 +187,7 @@ export class BluetoothManager {
           this.hrCharacteristic.removeEventListener("characteristicvaluechanged", this.onHRChange);
         }
       } catch (err) {
-        console.error('[Bluetooth] Stop notifications error:', err);
+        logger.error({ err }, '[Bluetooth] Stop notifications error');
       }
       this.hrCharacteristic = null;
     }
@@ -194,7 +196,7 @@ export class BluetoothManager {
     }
     if (this.server) {
       try { this.server.disconnect(); } catch (err) {
-        console.error('[Bluetooth] Disconnect error:', err);
+        logger.error({ err }, '[Bluetooth] Disconnect error');
       }
       this.server = null;
     }

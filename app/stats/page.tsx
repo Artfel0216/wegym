@@ -1,32 +1,78 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+export const dynamic = 'force-dynamic';
+
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { 
   ChevronLeft, TrendingUp,
   Flame, Clock,
-  Dumbbell, Heart
+  Dumbbell, Heart, Loader2
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { AuthGuard } from '@/components/auth/AuthGuard';
 import { useTranslations } from '@/lib/i18n/hook';
 
+type PeriodKey = 'week' | 'month' | 'year';
+
+interface StatsData {
+  totalSessions: number;
+  totalVolume: number;
+  totalCalories: number;
+  totalDistance: number;
+  avgHeartRate: number;
+  chartData: Record<string, number>;
+}
+
 export default function StatsPage() {
   const router = useRouter();
   const { t } = useTranslations();
-  const [activeTab, setActiveTab] = useState('semana');
+  const [activeTab, setActiveTab] = useState<PeriodKey>('week');
+  const [statsData, setStatsData] = useState<StatsData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const fetchStats = useCallback(async (period: PeriodKey) => {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/workout-stats?period=${period}`);
+      if (res.ok) {
+        const data = await res.json();
+        setStatsData(data.data);
+      }
+    } catch {
+      // keep previous data
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchStats(activeTab);
+  }, [activeTab, fetchStats]);
 
   useEffect(() => {
     const routes = ['/profile', '/training', '/pro'];
     routes.forEach(route => router.prefetch(route));
   }, [router]);
 
+  const formatDuration = (seconds: number) => {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    if (h > 0) return `${h}h ${m}m`;
+    return `${m}m`;
+  };
+
   const stats = [
-    { label: t('stats.totalVolume'), value: '42.5t', icon: <Dumbbell size={18} />, color: 'text-orange-500' },
-    { label: t('stats.avgHeartRate'), value: '124 bpm', icon: <Heart size={18} />, color: 'text-rose-500' },
-    { label: t('stats.calories'), value: '12.400', icon: <Flame size={18} />, color: 'text-yellow-500' },
-    { label: t('stats.activeTime'), value: '18h 45m', icon: <Clock size={18} />, color: 'text-blue-500' },
+    { label: t('stats.totalVolume'), value: statsData ? formatDuration(statsData.totalVolume) : '—', icon: <Dumbbell size={18} />, color: 'text-orange-500' },
+    { label: t('stats.avgHeartRate'), value: statsData ? `${statsData.avgHeartRate} bpm` : '—', icon: <Heart size={18} />, color: 'text-rose-500' },
+    { label: t('stats.calories'), value: statsData ? statsData.totalCalories.toLocaleString() : '—', icon: <Flame size={18} />, color: 'text-yellow-500' },
+    { label: t('stats.activeTime'), value: statsData ? formatDuration(statsData.totalVolume) : '—', icon: <Clock size={18} />, color: 'text-blue-500' },
   ];
+
+  const chartValues = statsData?.chartData
+    ? Object.entries(statsData.chartData).map(([_, sec]) => sec)
+    : [];
+  const maxChartValue = Math.max(...chartValues, 1);
 
   return (
     <AuthGuard allowedRoles={['atleta']}>
@@ -47,7 +93,11 @@ export default function StatsPage() {
 
       <main className="max-w-2xl mx-auto px-6 pt-8 space-y-8 relative z-10">
         <section className="flex bg-zinc-900/50 p-1 rounded-2xl border border-white/5">
-          {[{label: t('stats.week'), key: 'semana'}, {label: t('stats.month'), key: 'mês'}, {label: t('stats.year'), key: 'ano'}].map((tab) => (
+          {[
+            {label: t('stats.week'), key: 'week' as PeriodKey},
+            {label: t('stats.month'), key: 'month' as PeriodKey},
+            {label: t('stats.year'), key: 'year' as PeriodKey},
+          ].map((tab) => (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
@@ -60,42 +110,64 @@ export default function StatsPage() {
           ))}
         </section>
 
-        <section className="grid grid-cols-2 gap-4">
-          {stats.map((item, idx) => (
-            <motion.div 
-              key={idx}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.1 }}
-              className="bg-zinc-900/40 border border-white/5 p-5 rounded-[30px] relative overflow-hidden group"
-            >
-              <div className={`${item.color} mb-3 group-hover:scale-110 transition-transform`}>
-                {item.icon}
-              </div>
-              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{item.label}</p>
-              <p className="text-2xl font-black italic mt-1">{item.value}</p>
-            </motion.div>
-          ))}
-        </section>
-
-        <section className="bg-zinc-900/40 border border-white/5 rounded-[40px] p-8">
-          <div className="flex justify-between items-end mb-8">
-            <div>
-              <h3 className="font-black italic uppercase text-sm">{t('stats.loadVolume')}</h3>
-            </div>
+        {loading ? (
+          <div className="flex justify-center py-16">
+            <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
           </div>
-          <div className="flex items-end justify-between h-40 gap-2">
-            {[40, 70, 45, 90, 65, 80, 100].map((height, i) => (
-              <div key={i} className="flex-1 flex flex-col items-center gap-3">
+        ) : (
+          <>
+            <section className="grid grid-cols-2 gap-4">
+              {stats.map((item, idx) => (
                 <motion.div 
-                  initial={{ height: 0 }}
-                  animate={{ height: `${height}%` }}
-                  className={`w-full rounded-t-lg ${i === 6 ? 'bg-orange-600' : 'bg-zinc-800'}`}
-                />
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.1 }}
+                  className="bg-zinc-900/40 border border-white/5 p-5 rounded-[30px] relative overflow-hidden group"
+                >
+                  <div className={`${item.color} mb-3 group-hover:scale-110 transition-transform`}>
+                    {item.icon}
+                  </div>
+                  <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{item.label}</p>
+                  <p className="text-2xl font-black italic mt-1">{item.value}</p>
+                </motion.div>
+              ))}
+            </section>
+
+            <section className="bg-zinc-900/40 border border-white/5 rounded-[40px] p-8">
+              <div className="flex justify-between items-end mb-8">
+                <div>
+                  <h3 className="font-black italic uppercase text-sm">{t('stats.loadVolume')}</h3>
+                  {statsData && (
+                    <p className="text-[10px] text-zinc-500 font-bold mt-1">
+                      {statsData.totalSessions} {statsData.totalSessions === 1 ? 'sessão' : 'sessões'}
+                    </p>
+                  )}
+                </div>
               </div>
-            ))}
-          </div>
-        </section>
+              <div className="flex items-end justify-between h-40 gap-2">
+                {chartValues.length > 0 ? (
+                  chartValues.map((value, i) => {
+                    const height = (value / maxChartValue) * 100;
+                    return (
+                      <div key={i} className="flex-1 flex flex-col items-center gap-3">
+                        <motion.div 
+                          initial={{ height: 0 }}
+                          animate={{ height: `${Math.max(height, 2)}%` }}
+                          className={`w-full rounded-t-lg ${i === chartValues.length - 1 ? 'bg-orange-600' : 'bg-zinc-800'}`}
+                        />
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="w-full text-center text-zinc-600 text-xs font-bold uppercase py-10">
+                    Nenhum dado no período
+                  </div>
+                )}
+              </div>
+            </section>
+          </>
+        )}
       </main>
 
     </div>

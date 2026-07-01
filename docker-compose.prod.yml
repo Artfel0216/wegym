@@ -8,13 +8,20 @@ services:
       - "127.0.0.1:3000:3000"
     environment:
       NEXTAUTH_URL: ${NEXTAUTH_URL:-https://wegym.app}
+      NEXT_PUBLIC_SITE_URL: https://wegym.app
+      NEXT_PUBLIC_CDN_URL: https://cdn.wegym.app
       NODE_ENV: production
     secrets:
       - db_password
       - nextauth_secret
       - gemini_api_key
       - mp_access_token
+      - mp_webhook_secret
+      - mp_public_key
       - resend_api_key
+      - sentry_dsn
+      - sentry_auth_token
+      - redis_url
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
       interval: 30s
@@ -98,8 +105,18 @@ secrets:
     file: ./secrets/gemini_api_key.txt
   mp_access_token:
     file: ./secrets/mp_access_token.txt
+  mp_webhook_secret:
+    file: ./secrets/mp_webhook_secret.txt
+  mp_public_key:
+    file: ./secrets/mp_public_key.txt
   resend_api_key:
     file: ./secrets/resend_api_key.txt
+  sentry_dsn:
+    file: ./secrets/sentry_dsn.txt
+  sentry_auth_token:
+    file: ./secrets/sentry_auth_token.txt
+  redis_url:
+    file: ./secrets/redis_url.txt
 
 volumes:
   wegym_backups:

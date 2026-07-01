@@ -55,6 +55,11 @@ export const athleteService = {
           city: data.city,
           state: data.state,
           cep: data.cep,
+          phone: data.phone ?? null,
+          emergencyContact: data.emergencyContact ?? null,
+          objective: data.objective ?? null,
+          observations: data.observations ?? null,
+          availableDays: data.availableDays ?? null,
         },
         select: { id: true, name: true },
       });
@@ -74,6 +79,13 @@ export const athleteService = {
         id: true,
         name: true,
         experienceLevel: true,
+        phone: true,
+        objective: true,
+        observations: true,
+        availableDays: true,
+        heightCm: true,
+        weightKg: true,
+        createdAt: true,
       },
     });
 

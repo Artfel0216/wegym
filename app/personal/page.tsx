@@ -1,10 +1,14 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AuthGuard } from '@/components/auth/AuthGuard';
+import { OnboardingTutorial } from '@/components/onboarding/OnboardingTutorial';
 import { useTranslations } from '@/lib/i18n/hook';
+import { logger } from '@/lib/logger';
 import {
   Users, TrendingUp, CalendarDays, Plus, Award,
   ChevronRight, Target, Dumbbell, Send, X, Bot, Trash2,
@@ -69,6 +73,20 @@ export default function PersonalDashboard() {
   const [loading, setLoading] = useState(false);
 
   const [studentsSearch, setStudentsSearch] = useState('');
+  const [dashboardStats, setDashboardStats] = useState({ activeStudents: 0, classesPerWeek: 0 });
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await fetch('/api/personal-stats');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.data) setDashboardStats(data.data);
+        }
+      } catch {}
+    };
+    fetchStats();
+  }, []);
 
 
 
@@ -119,7 +137,7 @@ useEffect(() => {
 
       setWeeklyClasses(formatted);
     } catch (err) {
-      console.error("Erro ao buscar aulas:", err);
+      logger.error({ err }, "Erro ao buscar aulas");
     }
   };
 
@@ -189,7 +207,7 @@ useEffect(() => {
       setCursor(data.nextCursor ?? null);
       setHasMore(!!data.nextCursor);
     } catch (err) {
-      console.error("Erro ao buscar alunos:", err);
+      logger.error({ err }, "Erro ao buscar alunos");
     }
   };
 
@@ -215,7 +233,7 @@ useEffect(() => {
           setCursor(data.nextCursor ?? null);
           setHasMore(!!data.nextCursor);
         } catch (err) {
-          console.error("Erro ao carregar mais alunos:", err);
+          logger.error({ err }, "Erro ao carregar mais alunos");
         }
 
         setLoadingMore(false);
@@ -272,8 +290,6 @@ const createStudent = async () => {
   ) return;
 
   try {
-    const age = new Date().getFullYear() - new Date(newStudent.birthDate).getFullYear();
-
     const res = await fetch('/api/athletes/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -281,7 +297,7 @@ const createStudent = async () => {
         email: newStudent.email || `${Date.now()}@temp.com`,
         name: newStudent.name,
         cpf: newStudent.cpf,
-        age,
+        birthDate: newStudent.birthDate || undefined,
         sex: newStudent.gender.toLowerCase(),
         heightCm: Number(newStudent.height) * 100,
         weightKg: Number(newStudent.weight),
@@ -289,7 +305,6 @@ const createStudent = async () => {
         city: 'Não informado',
         state: 'Não informado',
         cep: '00000-000',
-        phone: newStudent.phone,
       }),
     });
 
@@ -298,10 +313,11 @@ const createStudent = async () => {
       throw new Error(err.error);
     }
 
-    const id = `s${Date.now()}`;
+    const data = await res.json();
+    const studentId = data?.athlete?.id ?? `s${Date.now()}`;
     const student: Student = {
       ...newStudent,
-      id,
+      id: studentId,
       lastTraining: 'Novo',
       progress: 0,
       weeklyPlan: { Seg: [], Ter: [], Qua: [], Qui: [], Sex: [], Sab: [], Dom: [] },
@@ -311,7 +327,7 @@ const createStudent = async () => {
     setStudents((prev) => [student, ...prev]);
     setNewStudent(createEmptyStudentForm());
     setShowNewStudentForm(false);
-    setSelectedStudentId(id);
+    setSelectedStudentId(studentId);
   } catch (err) {
     alert((err as Error).message || 'Erro ao cadastrar atleta');
   }
@@ -335,8 +351,25 @@ const deleteSelectedStudent = () => {
 
 
 
-const addExerciseToSelectedStudent = () => {
+const addExerciseToSelectedStudent = async () => {
   if (!selectedStudentId || !exerciseToAdd.name || !exerciseToAdd.sets || !exerciseToAdd.reps) return;
+
+  try {
+    await fetch('/api/training-plans', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        athleteId: selectedStudentId,
+        day: exerciseToAdd.day,
+        exercises: [{
+          name: exerciseToAdd.name,
+          sets: exerciseToAdd.sets,
+          reps: exerciseToAdd.reps,
+          load: exerciseToAdd.load || '0',
+        }],
+      }),
+    });
+  } catch {}
 
   setStudents((prev) =>
     prev.map((student) => {
@@ -394,13 +427,28 @@ const AgendaItem: React.FC<{
   );
 };
 
-const addHistoryEntry = () => {
+const addHistoryEntry = async () => {
   if (!selectedStudentId || !historyInput.date || !historyInput.weight) return;
+
+  try {
+    await fetch('/api/progress', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        athleteId: selectedStudentId,
+        date: historyInput.date,
+        weight: Number(historyInput.weight),
+        muscleMass: historyInput.muscleMass ? Number(historyInput.muscleMass) : undefined,
+        bodyFat: historyInput.bodyFat ? Number(historyInput.bodyFat) : undefined,
+        note: historyInput.note || undefined,
+      }),
+    });
+  } catch {}
 
   setStudents((prev) =>
     prev.map((student) =>
       student.id === selectedStudentId
-        ? { ...student, progressHistory: [historyInput, ...student.progressHistory] }
+        ? { ...student, progressHistory: [{ ...historyInput, date: historyInput.date || new Date().toISOString().split('T')[0] }, ...student.progressHistory] }
         : student
     )
   );
@@ -439,6 +487,7 @@ const handleChat = async () => {
 
   return (
     <AuthGuard allowedRoles={['personal']}>
+      <OnboardingTutorial role="personal" />
     <div className="min-h-screen bg-zinc-950 text-zinc-100 pb-24 relative overflow-hidden antialiased font-sans">
       <div className="fixed top-[-10%] left-[-5%] w-96 h-96 bg-orange-600/5 rounded-full blur-[120px] pointer-events-none" />
 
@@ -541,10 +590,10 @@ const handleChat = async () => {
         )}
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <StatCard title={t('personal.activeStudents')} value="24" icon={Users} trend="12" />
-          <StatCard title={t('personal.classesPerWeek')} value="38" icon={CalendarDays} />
-          <StatCard title={t('personal.monthlyRevenue')} value="R$ 8.450" icon={TrendingUp} trend="5" />
-          <StatCard title={t('personal.retentionRate')} value="94%" icon={Target} />
+          <StatCard title={t('personal.activeStudents')} value={String(dashboardStats.activeStudents || students.length)} icon={Users} />
+          <StatCard title={t('personal.classesPerWeek')} value={String(dashboardStats.classesPerWeek)} icon={CalendarDays} />
+          <StatCard title={t('personal.monthlyRevenue')} value="R$ —" icon={TrendingUp} />
+          <StatCard title={t('personal.retentionRate')} value="—" icon={Target} />
         </div>
 
         <div className={`grid grid-cols-1 gap-8 ${activeMobileTab === 'students' && !selectedStudent ? '' : 'lg:grid-cols-3'}`}>

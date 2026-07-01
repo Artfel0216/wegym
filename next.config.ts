@@ -52,7 +52,7 @@ const nextConfig: NextConfig = {
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' ui-avatars.com data:; connect-src 'self' api.mercadopago.com api.resend.com viacep.com.br; frame-src 'none'; object-src 'none'; font-src 'self' data:",
+            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' ui-avatars.com data: raw.githubusercontent.com cdn.jsdelivr.net; connect-src 'self' api.mercadopago.com api.resend.com viacep.com.br *.ingest.us.sentry.io raw.githubusercontent.com cdn.jsdelivr.net ui-avatars.com; frame-src 'none'; frame-ancestors 'none'; object-src 'none'; font-src 'self' data:",
           },
           {
             key: 'Permissions-Policy',
@@ -64,4 +64,6 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default process.env.ANALYZE === 'true'
+  ? require('@next/bundle-analyzer')({ enabled: true })(nextConfig)
+  : nextConfig;

@@ -2,6 +2,7 @@ import { authenticate, handleError } from '@/lib/api-utils';
 import { paymentService } from '@/lib/services/payment.service';
 import { paymentSchema } from '@/lib/validation';
 import { ValidationError } from '@/lib/errors';
+import { logger } from '@/lib/logger';
 
 export const runtime = 'nodejs';
 
@@ -9,7 +10,7 @@ export const maxDuration = 15;
 
 export async function POST(request: Request) {
   try {
-    await authenticate();
+    const session = await authenticate();
 
     const body = await request.json();
     const parsed = paymentSchema.safeParse(body);
@@ -18,6 +19,19 @@ export async function POST(request: Request) {
     }
 
     const result = await paymentService.process(parsed.data);
+
+    if (result.status === 'approved' && result.id) {
+      try {
+        const { subscriptionService } = await import('@/lib/services/subscription.service');
+        await subscriptionService.create(
+          session.user.id,
+          parsed.data.description ?? 'wegym-pro',
+          String(result.id),
+        );
+      } catch (err) {
+        logger.error({ err }, '[Payment] Erro ao criar assinatura');
+      }
+    }
 
     return Response.json(result);
   } catch (error) {

@@ -1,11 +1,11 @@
 {
   "app": {
     "title": "WEGYM",
-    "description": "Inteligentna platforma treningowa \u2014 si\u0142ownia, cardio i wydajno\u015b\u0107"
+    "description": "Inteligentna platforma treningowa — siłownia, cardio i wydajność"
   },
   "common": {
     "brandName": "WEGYM",
-    "loading": "\u0141adowanie...",
+    "loading": "Ładowanie...",
     "save": "Zapisz",
     "edit": "Edytuj",
     "cancel": "Anuluj",
@@ -14,61 +14,89 @@
     "hourAbbr": "h",
     "minAbbr": "min",
     "kmUnit": " km",
-    "dash": " \u2014"
+    "dash": " —"
   },
   "sidebar": {
-    "home": "Strona G\u0142\u00f3wna",
-    "modalities": "Aktywno\u015bci",
+    "home": "Strona Główna",
+    "modalities": "Aktywności",
     "stats": "Statystyki",
     "pro": "Wegym Pro",
-    "profile": "M\u00f3j Profil",
-    "privacy": "Prywatno\u015b\u0107",
+    "profile": "Mój Profil",
+    "privacy": "Prywatność",
     "logout": "Wyloguj",
     "agenda": "Harmonogram",
     "myStudents": "Moi Uczniowie",
     "addStudent": "Dodaj ucznia",
-    "openMenu": "Otw\u00f3rz menu",
+    "openMenu": "Otwórz menu",
     "closeMenu": "Zamknij menu"
   },
   "login": {
-    "title": "ZALOGUJ SI\u0118",
+    "title": "ZALOGUJ SIĘ",
     "subtitle": "Gotowy na dzisiejszy trening?",
     "emailLabel": "E-mail",
-    "passwordLabel": "Has\u0142o",
-    "signIn": "Zaloguj si\u0119 do Wegym",
+    "passwordLabel": "Hasło",
+    "signIn": "Zaloguj się do Wegym",
     "noAccount": "Nie masz konta? "
   },
   "register": {
     "title": "Rejestracja",
-    "submit": "Zako\u0144cz rejestracj\u0119",
-    "alreadyMember": "Ju\u017c jeste\u015b cz\u0142onkiem? "
+    "submit": "Zakończ rejestrację",
+    "alreadyMember": "Już jesteś członkiem? "
   },
   "greeting": {
-    "morning": "Dzie\u0144 dobry",
-    "afternoon": "Dzie\u0144 dobry",
-    "evening": "Dobry wiecz\u00f3r",
-    "earlyMorning": "Dzie\u0144 dobry"
+    "morning": "Dzień dobry",
+    "afternoon": "Dzień dobry",
+    "evening": "Dobry wieczór",
+    "earlyMorning": "Dzień dobry"
   },
   "modality": {
-    "gym": "Si\u0142ownia",
+    "gym": "Siłownia",
     "running": "Bieganie",
     "cycling": "Jazda na rowerze",
     "aerobic": "Cardio",
     "combat": "Walka",
-    "swimming": "P\u0142ywanie",
+    "swimming": "Pływanie",
     "walking": "Chodzenie",
     "crossfit": "Cross Training",
     "yoga": "Joga & Pilates",
-    "hiking": "W\u0119dr\u00f3wki",
-    "basketball": "Koszyk\u00f3wka",
-    "soccer": "Pi\u0142ka no\u017cna",
+    "hiking": "Wędrówki",
+    "basketball": "Koszykówka",
+    "soccer": "Piłka nożna",
     "tennis": "Tenis",
     "climbing": "Wspinaczka",
     "skate": "Skate",
     "functional": "Funkcjonalny",
     "hiit": "HIIT",
     "dance": "Taniec",
-    "rowing": "Wio\u015blarstwo",
+    "rowing": "Wioślarstwo",
     "other": "Inne"
+  },
+  "tutorial": {
+    "skip": "Skip",
+    "next": "Next",
+    "start": "Get Started",
+    "step": "Step {current} of {total}",
+    "athlete": {
+      "step1Title": "Welcome to WEGYM",
+      "step1Desc": "Your smart training platform. Gym, running, cycling, swimming and more — all in one place.",
+      "step2Title": "Smart Workouts",
+      "step2Desc": "Choose from multiple modalities, follow weekly training plans and log every session with sets, reps and loads.",
+      "step3Title": "AI & GPS",
+      "step3Desc": "Use the AI assistant to generate personalized workouts. Enable GPS to track outdoor runs and cycling routes.",
+      "step4Title": "Statistics",
+      "step4Desc": "Track your progress with charts for load volume, heart rate, calories burned and active time.",
+      "step5Title": "Profile & WEGYM PRO",
+      "step5Desc": "Set up your profile, connect smartwatches via Bluetooth and unlock premium features with WEGYM PRO."
+    },
+    "personal": {
+      "step1Title": "Personal Dashboard",
+      "step1Desc": "Welcome to the personal trainer dashboard. Manage students, workout plans and schedules all in one place.",
+      "step2Title": "Manage Students",
+      "step2Desc": "Register new students, view profiles, track history and monitor each student’s individual progress.",
+      "step3Title": "Plans & AI",
+      "step3Desc": "Create personalized weekly training plans. Use the AI Copilot to generate optimized workout sheets automatically.",
+      "step4Title": "Evolution",
+      "step4Desc": "Log measurements, weight and observations to track your students’ progress over time."
+    }
   }
 }

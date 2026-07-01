@@ -18,97 +18,105 @@ model User {
   privacyAcceptedAt DateTime?
   dataConsentAt     DateTime?
 
-  resetToken         String?  @unique @db.VarChar(255)
-  resetTokenExpires  DateTime?
+  resetToken        String?   @unique @db.VarChar(255)
+  resetTokenExpires DateTime?
 
   markedForDeletionAt DateTime?
   anonymizedAt        DateTime?
 
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  athlete      Athlete?
-  personal     PersonalTrainer?
+  athlete       Athlete?
+  personal      PersonalTrainer?
+  subscriptions Subscription[]
 
   @@index([role])
   @@map("users")
 }
 
 model Athlete {
-  id                 String   @id @default(uuid()) @db.Uuid
-  userId             String   @unique @db.Uuid
-  personalId         String?  @db.Uuid
+  id         String  @id @default(uuid()) @db.Uuid
+  userId     String  @unique @db.Uuid
+  personalId String? @db.Uuid
 
-  name               String   @db.VarChar(255)
-  cpf                String   @unique @db.VarChar(14)
-  cep                String   @db.VarChar(9)
-  city               String   @db.VarChar(100)
-  state              String   @db.Char(2)
+  name  String @db.VarChar(255)
+  cpf   String @unique @db.VarChar(14)
+  cep   String @db.VarChar(9)
+  city  String @db.VarChar(100)
+  state String @db.Char(2)
 
-  age                Int      @db.SmallInt
-  sex                UserSex
+  age Int     @db.SmallInt
+  sex UserSex
 
-  heightCm           Int      @db.SmallInt
-  weightKg           Float    
+  heightCm Int   @db.SmallInt
+  weightKg Float
 
-  experienceLevel    ExperienceLevel
+  experienceLevel ExperienceLevel
 
-  injury             String?
-  healthIssues       String?
-  medications        String?
-
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-
-  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  personal     PersonalTrainer?  @relation(fields: [personalId], references: [id], onDelete: SetNull)
-
-  trainingPlans   TrainingPlan[]
-  progressEntries ProgressEntry[]
-  weeklyClasses   WeeklyClass[]
-
-  @@index([personalId])
-  @@index([state, city])
-  @@index([createdAt]) 
-  @@map("athletes")
-}
-
-model PersonalTrainer {
-  id        String   @id @default(uuid()) @db.Uuid
-  userId    String   @unique @db.Uuid
-
-  name      String   @db.VarChar(255)
-  cref      String   @unique @db.VarChar(20)
+  injury          String?
+  healthIssues    String?
+  medications     String?
+  phone           String?  @db.VarChar(20)
+  emergencyContact String? @db.VarChar(255)
+  objective       String?  @db.VarChar(255)
+  observations    String?  @db.Text
+  availableDays   String?  @db.VarChar(100)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  athletes  Athlete[]
+  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  personal PersonalTrainer? @relation(fields: [personalId], references: [id], onDelete: SetNull)
+
+  trainingPlans   TrainingPlan[]
+  progressEntries ProgressEntry[]
+  weeklyClasses   WeeklyClass[]
+  workoutSessions WorkoutSession[]
+  gpsSessions     GpsSession[]
+
+  @@index([personalId])
+  @@index([state, city])
+  @@index([createdAt])
+  @@map("athletes")
+}
+
+model PersonalTrainer {
+  id     String @id @default(uuid()) @db.Uuid
+  userId String @unique @db.Uuid
+
+  name String @db.VarChar(255)
+  cref String @unique @db.VarChar(20)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  athletes Athlete[]
 
   @@map("personal_trainers")
 }
 
 model TrainingPlan {
-  id        String   @id @default(uuid()) @db.Uuid
-  athleteId String   @db.Uuid
+  id        String  @id @default(uuid()) @db.Uuid
+  athleteId String  @db.Uuid
   day       WeekDay
 
-  athlete   Athlete  @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  athlete   Athlete    @relation(fields: [athleteId], references: [id], onDelete: Cascade)
   exercises Exercise[]
 
-  @@index([athleteId, day]) 
+  @@index([athleteId, day])
   @@map("training_plans")
 }
 
 model Exercise {
-  id     String @id @default(uuid()) @db.Uuid
-  name   String @db.VarChar(255)
-  sets   String @db.VarChar(10)
-  reps   String @db.VarChar(10)
-  load   String @db.VarChar(20)
+  id   String @id @default(uuid()) @db.Uuid
+  name String @db.VarChar(255)
+  sets String @db.VarChar(10)
+  reps String @db.VarChar(10)
+  load String @db.VarChar(20)
 
-  planId String @db.Uuid
+  planId String       @db.Uuid
   plan   TrainingPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
 
   @@index([planId])
@@ -116,32 +124,32 @@ model Exercise {
 }
 
 model ProgressEntry {
-  id          String   @id @default(uuid()) @db.Uuid
-  athleteId   String   @db.Uuid
+  id        String @id @default(uuid()) @db.Uuid
+  athleteId String @db.Uuid
 
-  date        DateTime
-  weight      Float
-  muscleMass  Float?
-  bodyFat     Float?
-  note        String?
+  date       DateTime
+  weight     Float
+  muscleMass Float?
+  bodyFat    Float?
+  note       String?
 
-  athlete     Athlete  @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  athlete Athlete @relation(fields: [athleteId], references: [id], onDelete: Cascade)
 
-  @@index([athleteId, date]) 
+  @@index([athleteId, date])
   @@map("progress_entries")
 }
 
 model WeeklyClass {
-  id        String   @id @default(uuid()) @db.Uuid
-  athleteId String   @db.Uuid
+  id        String @id @default(uuid()) @db.Uuid
+  athleteId String @db.Uuid
 
-  day       WeekDay
-  date      DateTime
-  time      String   @db.VarChar(5)
-  type      String   @db.VarChar(50)
-  status    ClassStatus
+  day    WeekDay
+  date   DateTime
+  time   String      @db.VarChar(5)
+  type   String      @db.VarChar(50)
+  status ClassStatus
 
-  athlete   Athlete  @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  athlete Athlete @relation(fields: [athleteId], references: [id], onDelete: Cascade)
 
   @@index([athleteId, date])
   @@map("weekly_classes")
@@ -155,6 +163,67 @@ enum WeekDay {
   Sex
   Sab
   Dom
+}
+
+model Subscription {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @db.Uuid
+  plan      String    @db.VarChar(50)
+  status    String    @db.VarChar(20) // active, inactive, cancelled
+  paymentId String?   @unique @db.VarChar(255)
+  startDate DateTime  @default(now())
+  endDate   DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([paymentId])
+  @@map("subscriptions")
+}
+
+model WorkoutSession {
+  id              String   @id @default(uuid()) @db.Uuid
+  athleteId       String   @db.Uuid
+  modality        String   @db.VarChar(50)
+  durationSec     Int
+  distanceKm      Float?
+  avgPaceSecPerKm Int?
+  steps           Int?
+  calories        Float?
+  avgHeartRate    Int?
+  completedAt     DateTime @default(now())
+  exercises       Json? // exercises done in this session
+  createdAt       DateTime @default(now())
+
+  athlete Athlete @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+
+  @@index([athleteId, completedAt])
+  @@map("workout_sessions")
+}
+
+model GpsSession {
+  id              String   @id @default(uuid()) @db.Uuid
+  athleteId       String   @db.Uuid
+  modality        String   @db.VarChar(50)
+  distanceKm      Float
+  durationSec     Int
+  avgPaceSecPerKm Int?
+  steps           Int?
+  coordinates     Json? // array of GpsCoordinate
+  startLat        Float?
+  startLng        Float?
+  endLat          Float?
+  endLng          Float?
+  completedAt     DateTime @default(now())
+  createdAt       DateTime @default(now())
+
+  athlete Athlete @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+
+  @@index([athleteId, completedAt])
+  @@map("gps_sessions")
 }
 
 enum ClassStatus {

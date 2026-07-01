@@ -1,3 +1,5 @@
+import { logger } from './logger';
+
 type StoreEntry = { data: unknown; expiresAt: number };
 
 const redisUrl = () => process.env.REDIS_URL;
@@ -8,51 +10,62 @@ function prefix(key: string) {
 }
 
 let redisClient: Awaited<ReturnType<typeof createRedisClient>> | null = null;
+let redisFailed = false;
 
 async function createRedisClient() {
   const { createClient } = await import('redis');
-  const client = createClient({ url: redisUrl() });
-  client.on('error', (err) => { console.error('[Cache] Redis error:', err); redisClient = null; });
+  const client = createClient({
+    url: redisUrl(),
+    socket: { reconnectStrategy: false },
+  });
   await client.connect();
   return client;
 }
 
 async function getRedis() {
-  if (!redisUrl()) return null;
+  if (redisFailed || !redisUrl()) return null;
   if (redisClient?.isOpen) return redisClient;
   try {
     redisClient = await createRedisClient();
+    redisFailed = false;
     return redisClient;
   } catch (err) {
-    console.error('[Cache] Failed to connect to Redis:', err);
+    logger.warn({ err }, '[Cache] Redis unavailable, using in-memory fallback');
+    try { redisClient?.quit(); } catch { /* ignore */ }
     redisClient = null;
+    redisFailed = true;
     return null;
   }
 }
 
 const memStore = new Map<string, StoreEntry>();
 
+async function memGet<T>(key: string): Promise<T | null> {
+  const entry = memStore.get(prefix(key));
+  if (!entry) return null;
+  if (Date.now() > entry.expiresAt) {
+    memStore.delete(prefix(key));
+    return null;
+  }
+  return entry.data as T;
+}
+
 export const cache = {
   async get<T>(key: string): Promise<T | null> {
     const redis = await getRedis();
     if (redis) {
-      const raw = await redis.get(prefix(key));
-      if (!raw) return null;
-      const parsed = JSON.parse(raw) as StoreEntry;
-      if (Date.now() > parsed.expiresAt) {
-        await redis.del(prefix(key));
-        return null;
-      }
-      return parsed.data as T;
+      try {
+        const raw = await redis.get(prefix(key));
+        if (!raw) return null;
+        const parsed = JSON.parse(raw) as StoreEntry;
+        if (Date.now() > parsed.expiresAt) {
+          await redis.del(prefix(key));
+          return null;
+        }
+        return parsed.data as T;
+      } catch { return memGet(key); }
     }
-
-    const entry = memStore.get(prefix(key));
-    if (!entry) return null;
-    if (Date.now() > entry.expiresAt) {
-      memStore.delete(prefix(key));
-      return null;
-    }
-    return entry.data as T;
+    return memGet(key);
   },
 
   async set(key: string, value: unknown, ttlSeconds = 60) {
@@ -62,8 +75,7 @@ export const cache = {
 
     const redis = await getRedis();
     if (redis) {
-      await redis.set(prefixed, JSON.stringify(entry), { PX: ttlSeconds * 1000 });
-      return;
+      try { await redis.set(prefixed, JSON.stringify(entry), { PX: ttlSeconds * 1000 }); return; } catch { /* fall through */ }
     }
 
     memStore.set(prefixed, entry);
@@ -74,8 +86,7 @@ export const cache = {
 
     const redis = await getRedis();
     if (redis) {
-      await redis.del(prefixed);
-      return;
+      try { await redis.del(prefixed); return; } catch { /* fall through */ }
     }
 
     memStore.delete(prefixed);
@@ -86,9 +97,11 @@ export const cache = {
 
     const redis = await getRedis();
     if (redis) {
-      const keys = await redis.keys(`${prefixed}*`);
-      if (keys.length > 0) await redis.del(keys);
-      return;
+      try {
+        const keys = await redis.keys(`${prefixed}*`);
+        if (keys.length > 0) await redis.del(keys);
+        return;
+      } catch { /* fall through */ }
     }
 
     for (const k of memStore.keys()) {

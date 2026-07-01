@@ -421,6 +421,11 @@
     "singlePayment": "Pagamento único",
     "configuring": "Configurando Gateway...",
     "encrypted": "Ambiente Criptografado de Ponta a Ponta",
+    "processing": "Processando pagamento...",
+    "success": "Pagamento aprovado!",
+    "error": "Pagamento recusado",
+    "redirecting": "Redirecionando...",
+    "tryAgain": "Tentar novamente",
     "poweredBy": "Powered by Mercado Pago"
   },
   "resetPassword": {
@@ -659,5 +664,33 @@
     "resetButton": "Redefinir senha",
     "resetFooter": "Este link expira em 1 hora. Se você não solicitou esta alteração, ignore este email.",
     "resetTextPlain": "Redefina sua senha WEGYM acessando:"
+  },
+  "tutorial": {
+    "skip": "Pular",
+    "next": "Próximo",
+    "start": "Começar",
+    "step": "Passo {current} de {total}",
+    "athlete": {
+      "step1Title": "Bem-vindo ao WEGYM",
+      "step1Desc": "Sua plataforma inteligente de treinos. Academia, corrida, ciclismo, natação e muito mais — tudo em um só lugar.",
+      "step2Title": "Treinos Inteligentes",
+      "step2Desc": "Escolha entre diversas modalidades, siga planos semanais de treino e registre cada sessão com séries, repetições e cargas.",
+      "step3Title": "IA & GPS",
+      "step3Desc": "Use o assistente de IA para gerar treinos personalizados. Ative o GPS para mapear corridas e ciclismo ao ar livre.",
+      "step4Title": "Estatísticas",
+      "step4Desc": "Acompanhe sua evolução com gráficos de volume de carga, batimentos cardíacos, calorias queimadas e tempo ativo.",
+      "step5Title": "Perfil & WEGYM PRO",
+      "step5Desc": "Configure seu perfil, conecte smartwatches via Bluetooth e desbloqueie recursos premium com o WEGYM PRO."
+    },
+    "personal": {
+      "step1Title": "Painel do Personal",
+      "step1Desc": "Bem-vindo ao painel do personal trainer. Gerencie seus alunos, fichas de treino e agendamentos em um só lugar.",
+      "step2Title": "Gerenciar Alunos",
+      "step2Desc": "Cadastre novos alunos, visualize perfis, históricos e acompanhe o progresso individual de cada um.",
+      "step3Title": "Planos & IA",
+      "step3Desc": "Crie planos de treino semanais personalizados. Use o Copilot IA para gerar fichas otimizadas automaticamente.",
+      "step4Title": "Evolução",
+      "step4Desc": "Regstre medidas, peso e observações para acompanhar a evolução dos seus alunos ao longo do tempo."
+    }
   }
 }

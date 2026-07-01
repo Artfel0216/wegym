@@ -13,7 +13,7 @@ interface Props {
 export const ExerciseItem = memo(({ ex, isCompleted, onToggle }: Props) => {
   const { t } = useTranslations();
   const [showGif, setShowGif] = useState(false);
-  const gifUrl = ex.gifUrl || getExerciseGifUrl(ex.name);
+  const gifUrl = getExerciseGifUrl(ex.name) || ex.gifUrl;
 
   const handleToggle = () => {
     onToggle(ex.id);

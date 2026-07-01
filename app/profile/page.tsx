@@ -1,5 +1,7 @@
 ﻿"use client";
 
+export const dynamic = 'force-dynamic';
+
 import React, { useCallback, useEffect, useMemo, useRef, useState, startTransition } from "react";
 import Link from "next/link";
 import { useTranslations } from "@/lib/i18n/hook";

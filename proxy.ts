@@ -13,11 +13,15 @@ const PERSONAL_ROUTES = new Set(['/personal']);
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Skip for static and API - pass through immediately
+  // Skip for static assets and API - pass through immediately
   if (
     pathname.startsWith('/_next') ||
     pathname.startsWith('/api/') ||
-    pathname === '/favicon.ico'
+    pathname === '/favicon.ico' ||
+    pathname === '/manifest.json' ||
+    pathname === '/sw.js' ||
+    /^\/icon-\d+\.(png|jpg|jpeg|svg|webp)$/.test(pathname) ||
+    /\.(png|jpg|jpeg|gif|svg|webp|ico|json|js|css|woff2?)$/.test(pathname)
   ) {
     return NextResponse.next();
   }
@@ -72,5 +76,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|sw.js|manifest.json).*)'],
+  matcher: ['/((?!_next/static|_next/image|api/|favicon\\.ico|sw\\.js|manifest\\.json|icon-\\d+\\.(?:png|jpg|jpeg|svg|webp)|.+\\.(?:png|jpg|jpeg|gif|svg|webp|ico|json|js|css|woff2?)$).*)'],
 };

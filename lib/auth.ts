@@ -2,6 +2,7 @@ import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "./prisma";
+import { ratelimit } from "./rate-limit";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -15,6 +16,9 @@ export const authOptions: NextAuthOptions = {
         if (!credentials?.email || !credentials?.password) return null;
 
         const email = String(credentials.email).trim().toLowerCase();
+
+        const { success } = await ratelimit.limit(`login:${email}`);
+        if (!success) return null;
 
         const user = await prisma.user.findUnique({
           where: { email },

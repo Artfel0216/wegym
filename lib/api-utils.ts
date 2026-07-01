@@ -3,6 +3,7 @@ import { AppError } from './errors';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from './auth';
 import { cache } from './cache';
+import { logger } from './logger';
 
 const ONE_MINUTE = 60;
 const FIVE_MINUTES = 300;
@@ -42,7 +43,7 @@ export function handleError(error: unknown) {
   }
 
   if (process.env.NODE_ENV !== 'test') {
-    console.error('[API Error]', error instanceof Error ? error.message : error);
+    logger.error({ err: error instanceof Error ? error.message : error }, '[API Error]');
   }
 
   return NextResponse.json(

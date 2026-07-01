@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { Send, Dumbbell, Sparkles, Trophy, Activity } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslations } from '@/lib/i18n/hook';
+import { logger } from '@/lib/logger';
 
 interface Exercise {
   name: string;
@@ -50,7 +51,7 @@ export default function Chatbot() {
         setWorkout(data.workoutData);
       }
     } catch (error) {
-      console.error("Erro ao chamar API", error);
+      logger.error({ err: error }, "Erro ao chamar API");
     } finally {
       setLoading(false);
     }

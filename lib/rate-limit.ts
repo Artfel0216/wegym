@@ -1,6 +1,4 @@
-// Rate limiting is handled globally in proxy.ts.
-// This file is kept as a shared import for per-route overrides if needed,
-// but all general API rate limiting is done at the proxy level.
+import { logger } from './logger';
 
 const WINDOW_MS = 10_000;
 const MAX_REQUESTS = 10;
@@ -10,24 +8,30 @@ const redisUrl = () => process.env.REDIS_URL;
 const memWindows = new Map<string, number[]>();
 
 let redisClient: Awaited<ReturnType<typeof createRedisClient>> | null = null;
+let redisFailed = false;
 
 async function createRedisClient() {
   const { createClient } = await import('redis');
-  const client = createClient({ url: redisUrl() });
-  client.on('error', (err) => { console.error('[RateLimit] Redis error:', err); redisClient = null; });
+  const client = createClient({
+    url: redisUrl(),
+    socket: { reconnectStrategy: false },
+  });
   await client.connect();
   return client;
 }
 
 async function getRedis() {
-  if (!redisUrl()) return null;
+  if (redisFailed || !redisUrl()) return null;
   if (redisClient?.isOpen) return redisClient;
   try {
     redisClient = await createRedisClient();
+    redisFailed = false;
     return redisClient;
   } catch (err) {
-    console.error('[RateLimit] Failed to connect to Redis:', err);
+    logger.warn({ err }, '[RateLimit] Redis unavailable, using in-memory fallback');
+    try { redisClient?.quit(); } catch { /* ignore */ }
     redisClient = null;
+    redisFailed = true;
     return null;
   }
 }
@@ -36,20 +40,27 @@ export const ratelimit = {
   async limit(identifier: string): Promise<{ success: boolean }> {
     const redis = await getRedis();
     if (redis) {
-      const key = `ratelimit:${identifier}`;
-      const current = await redis.incr(key);
-      if (current === 1) await redis.pExpire(key, WINDOW_MS);
-      return { success: current <= MAX_REQUESTS };
+      try {
+        const key = `ratelimit:${identifier}`;
+        const current = await redis.incr(key);
+        if (current === 1) await redis.pExpire(key, WINDOW_MS);
+        return { success: current <= MAX_REQUESTS };
+      } catch {
+        return memLimit(identifier);
+      }
     }
-
-    const now = Date.now();
-    const timestamps = memWindows.get(identifier) ?? [];
-    const withinWindow = timestamps.filter((t) => now - t < WINDOW_MS);
-    if (withinWindow.length >= MAX_REQUESTS) {
-      return { success: false };
-    }
-    withinWindow.push(now);
-    memWindows.set(identifier, withinWindow);
-    return { success: true };
+    return memLimit(identifier);
   },
 };
+
+function memLimit(identifier: string): { success: boolean } {
+  const now = Date.now();
+  const timestamps = memWindows.get(identifier) ?? [];
+  const withinWindow = timestamps.filter((t) => now - t < WINDOW_MS);
+  if (withinWindow.length >= MAX_REQUESTS) {
+    return { success: false };
+  }
+  withinWindow.push(now);
+  memWindows.set(identifier, withinWindow);
+  return { success: true };
+}
