@@ -54,14 +54,14 @@ model Athlete {
 
   experienceLevel ExperienceLevel
 
-  injury          String?
-  healthIssues    String?
-  medications     String?
-  phone           String?  @db.VarChar(20)
+  injury           String?
+  healthIssues     String?
+  medications      String?
+  phone            String? @db.VarChar(20)
   emergencyContact String? @db.VarChar(255)
-  objective       String?  @db.VarChar(255)
-  observations    String?  @db.Text
-  availableDays   String?  @db.VarChar(100)
+  objective        String? @db.VarChar(255)
+  observations     String? @db.Text
+  availableDays    String? @db.VarChar(100)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
