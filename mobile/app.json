@@ -23,7 +23,11 @@
         "NSLocationAlwaysAndWhenInUseUsageDescription": "O WEGYM usa localização em segundo plano para tracking GPS.",
         "NSBluetoothAlwaysUsageDescription": "O WEGYM usa Bluetooth para conectar monitores cardíacos.",
         "NSBluetoothPeripheralUsageDescription": "O WEGYM usa Bluetooth para conectar monitores cardíacos.",
-        "UIBackgroundModes": ["location", "fetch", "remote-notification"]
+        "UIBackgroundModes": [
+          "location",
+          "fetch",
+          "remote-notification"
+        ]
       }
     },
     "android": {
@@ -54,10 +58,19 @@
       "expo-secure-store",
       "expo-notifications",
       "expo-location",
+      "react-native-health-connect",
       [
         "react-native-health",
         {
           "isHealthDataExchangeEnabled": true
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 26
+          }
         }
       ]
     ]
