@@ -173,6 +173,24 @@ export const userService = {
     return { message: 'Perfil atualizado' };
   },
 
+  async consent(userId: string, data: { termsAccepted?: boolean; privacyAccepted?: boolean; dataConsent?: boolean }) {
+    const updateData: Record<string, Date> = {};
+    if (data.termsAccepted) updateData.termsAcceptedAt = new Date();
+    if (data.privacyAccepted) updateData.privacyAcceptedAt = new Date();
+    if (data.dataConsent) updateData.dataConsentAt = new Date();
+
+    if (Object.keys(updateData).length === 0) {
+      return { message: 'Nenhum consentimento alterado' };
+    }
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: updateData,
+    });
+
+    return { message: 'Consentimento salvo' };
+  },
+
   async exportData(userId: string) {
     const user = await prisma.user.findUnique({
       where: { id: userId },

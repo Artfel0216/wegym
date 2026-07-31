@@ -665,6 +665,142 @@
     "resetFooter": "Este link expira em 1 hora. Se você não solicitou esta alteração, ignore este email.",
     "resetTextPlain": "Redefina sua senha WEGYM acessando:"
   },
+  "chat": {
+    "title": "Chat",
+    "inputPlaceholder": "Digite sua mensagem...",
+    "send": "Enviar",
+    "noMessages": "Nenhuma mensagem ainda",
+    "emptyConversation": "Inicie uma conversa"
+  },
+  "goals": {
+    "title": "Metas",
+    "subtitle": "Defina seus objetivos SMART",
+    "create": "Nova Meta",
+    "edit": "Editar Meta",
+    "category": "Categoria",
+    "targetValue": "Valor alvo",
+    "currentValue": "Progresso atual",
+    "endDate": "Data limite",
+    "active": "Ativas",
+    "completed": "Concluídas",
+    "cancelled": "Canceladas",
+    "workout": "Treinos",
+    "weight": "Peso",
+    "nutrition": "Nutrição",
+    "cardio": "Cardio",
+    "custom": "Personalizado",
+    "progress": "Progresso",
+    "markComplete": "Concluir"
+  },
+  "checkin": {
+    "title": "Check-in Diário",
+    "howAreYou": "Como você está hoje?",
+    "mood": "Humor",
+    "energy": "Energia",
+    "sleep": "Horas de sono",
+    "trained": "Treinou hoje?",
+    "note": "Observação",
+    "streak": "Sequência: {days} dias",
+    "save": "Salvar check-in",
+    "saved": "Check-in salvo!"
+  },
+  "feed": {
+    "title": "Feed",
+    "placeholder": "O que você está compartilhando?",
+    "post": "Publicar",
+    "like": "Curtir",
+    "comment": "Comentar",
+    "noPosts": "Nenhuma publicação ainda"
+  },
+  "nutrition": {
+    "title": "Nutrição",
+    "searchFood": "Buscar alimentos...",
+    "breakfast": "Café da manhã",
+    "lunch": "Almoço",
+    "dinner": "Jantar",
+    "snack": "Lanche",
+    "addFood": "Adicionar",
+    "calories": "Calorias",
+    "protein": "Proteína",
+    "carbs": "Carboidratos",
+    "fat": "Gorduras",
+    "fiber": "Fibras",
+    "totals": "Total do dia",
+    "dietPlans": "Planos Alimentares",
+    "createPlan": "Criar Plano"
+  },
+  "programs": {
+    "title": "Programas",
+    "subtitle": "Treinos pré-montados para você",
+    "gym": "Musculação",
+    "running": "Corrida",
+    "weight_loss": "Perda de Peso",
+    "start": "Iniciar Programa",
+    "week": "Semana {n}",
+    "day": "Dia {n}"
+  },
+  "achievements": {
+    "title": "Conquistas",
+    "subtitle": "Suas medalhas e badges",
+    "locked": "Bloqueado",
+    "earned": "Conquistada em {date}",
+    "xp": "{n} XP"
+  },
+  "challenges": {
+    "title": "Desafios",
+    "join": "Participar",
+    "leaderboard": "Ranking",
+    "progress": "{current} / {target}"
+  },
+  "appointments": {
+    "title": "Agendamentos",
+    "book": "Agendar",
+    "mySlots": "Meus Horários",
+    "available": "Disponível",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "training": "Treino",
+    "evaluation": "Avaliação",
+    "consultation": "Consulta"
+  },
+  "integrations": {
+    "title": "Integrações",
+    "subtitle": "Conecte seus apps favoritos",
+    "connect": "Conectar",
+    "connected": "Conectado",
+    "disconnect": "Desconectar",
+    "sync": "Sincronizar agora",
+    "syncing": "Sincronizando...",
+    "lastSync": "Última sincronização: {date}",
+    "neverSynced": "Nunca sincronizado",
+    "syncSuccess": "Sincronização concluída! {imported} atividades importadas.",
+    "syncFailed": "Falha na sincronização. Tente novamente.",
+    "strava": {
+      "name": "Strava",
+      "description": "Importe corridas, pedaladas e natação do Strava"
+    },
+    "googleFit": {
+      "name": "Google Fit",
+      "description": "Sincronize treinos e batimentos cardíacos do Google Fit"
+    },
+    "healthConnect": {
+      "name": "Health Connect",
+      "description": "Em breve — centralize dados de saúde do Android"
+    },
+    "appleHealth": {
+      "name": "Apple Health",
+      "description": "Em breve — sincronize atividades do Apple Health"
+    },
+    "garmin": {
+      "name": "Garmin",
+      "description": "Em breve — conecte seu relógio Garmin"
+    },
+    "error": {
+      "connectFailed": "Falha ao conectar. Tente novamente.",
+      "alreadyConnected": "Já conectado",
+      "noProvider": "Provedor não encontrado"
+    }
+  },
   "tutorial": {
     "skip": "Pular",
     "next": "Próximo",

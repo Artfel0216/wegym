@@ -660,6 +660,142 @@
     "resetFooter": "This link expires in 1 hour. If you didn't request this change, ignore this email.",
     "resetTextPlain": "Reset your WEGYM password by visiting:"
   },
+  "integrations": {
+    "title": "Integrations",
+    "subtitle": "Connect your favorite apps",
+    "connect": "Connect",
+    "connected": "Connected",
+    "disconnect": "Disconnect",
+    "sync": "Sync now",
+    "syncing": "Syncing...",
+    "lastSync": "Last sync: {date}",
+    "neverSynced": "Never synced",
+    "syncSuccess": "Sync complete! {imported} activities imported.",
+    "syncFailed": "Sync failed. Please try again.",
+    "strava": {
+      "name": "Strava",
+      "description": "Import runs, rides and swims from Strava"
+    },
+    "googleFit": {
+      "name": "Google Fit",
+      "description": "Sync workouts and heart rate from Google Fit"
+    },
+    "healthConnect": {
+      "name": "Health Connect",
+      "description": "Coming soon — centralize health data from Android"
+    },
+    "appleHealth": {
+      "name": "Apple Health",
+      "description": "Coming soon — sync activities from Apple Health"
+    },
+    "garmin": {
+      "name": "Garmin",
+      "description": "Coming soon — connect your Garmin watch"
+    },
+    "error": {
+      "connectFailed": "Failed to connect. Please try again.",
+      "alreadyConnected": "Already connected",
+      "noProvider": "Provider not found"
+    }
+  },
+  "chat": {
+    "title": "Chat",
+    "inputPlaceholder": "Type your message...",
+    "send": "Send",
+    "noMessages": "No messages yet",
+    "emptyConversation": "Start a conversation"
+  },
+  "goals": {
+    "title": "Goals",
+    "subtitle": "Set your SMART goals",
+    "create": "New Goal",
+    "edit": "Edit Goal",
+    "category": "Category",
+    "targetValue": "Target value",
+    "currentValue": "Current progress",
+    "endDate": "Deadline",
+    "active": "Active",
+    "completed": "Completed",
+    "cancelled": "Cancelled",
+    "workout": "Workouts",
+    "weight": "Weight",
+    "nutrition": "Nutrition",
+    "cardio": "Cardio",
+    "custom": "Custom",
+    "progress": "Progress",
+    "markComplete": "Mark Complete"
+  },
+  "checkin": {
+    "title": "Daily Check-in",
+    "howAreYou": "How are you today?",
+    "mood": "Mood",
+    "energy": "Energy",
+    "sleep": "Sleep hours",
+    "trained": "Worked out today?",
+    "note": "Notes",
+    "streak": "Streak: {days} days",
+    "save": "Save check-in",
+    "saved": "Check-in saved!"
+  },
+  "feed": {
+    "title": "Feed",
+    "placeholder": "What are you sharing?",
+    "post": "Post",
+    "like": "Like",
+    "comment": "Comment",
+    "noPosts": "No posts yet"
+  },
+  "nutrition": {
+    "title": "Nutrition",
+    "searchFood": "Search foods...",
+    "breakfast": "Breakfast",
+    "lunch": "Lunch",
+    "dinner": "Dinner",
+    "snack": "Snack",
+    "addFood": "Add",
+    "calories": "Calories",
+    "protein": "Protein",
+    "carbs": "Carbs",
+    "fat": "Fat",
+    "fiber": "Fiber",
+    "totals": "Daily Totals",
+    "dietPlans": "Diet Plans",
+    "createPlan": "Create Plan"
+  },
+  "programs": {
+    "title": "Programs",
+    "subtitle": "Pre-built workouts for you",
+    "gym": "Weight Training",
+    "running": "Running",
+    "weight_loss": "Weight Loss",
+    "start": "Start Program",
+    "week": "Week {n}",
+    "day": "Day {n}"
+  },
+  "achievements": {
+    "title": "Achievements",
+    "subtitle": "Your medals and badges",
+    "locked": "Locked",
+    "earned": "Earned on {date}",
+    "xp": "{n} XP"
+  },
+  "challenges": {
+    "title": "Challenges",
+    "join": "Join",
+    "leaderboard": "Leaderboard",
+    "progress": "{current} / {target}"
+  },
+  "appointments": {
+    "title": "Appointments",
+    "book": "Book",
+    "mySlots": "My Slots",
+    "available": "Available",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "training": "Training",
+    "evaluation": "Evaluation",
+    "consultation": "Consultation"
+  },
   "tutorial": {
     "skip": "Skip",
     "next": "Next",
