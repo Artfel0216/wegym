@@ -13,6 +13,14 @@ const PERSONAL_ROUTES = new Set(['/personal']);
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Never show the raw NextAuth error page - send users back to login
+  if (pathname === '/api/auth/error') {
+    const error = request.nextUrl.searchParams.get('error');
+    const loginUrl = new URL('/login', request.url);
+    if (error) loginUrl.searchParams.set('error', error);
+    return NextResponse.redirect(loginUrl);
+  }
+
   // Skip for static assets and API - pass through immediately
   if (
     pathname.startsWith('/_next') ||
@@ -76,5 +84,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|api/|favicon\\.ico|sw\\.js|manifest\\.json|icon-\\d+\\.(?:png|jpg|jpeg|svg|webp)|.+\\.(?:png|jpg|jpeg|gif|svg|webp|ico|json|js|css|woff2?)$).*)'],
+  matcher: ['/((?!_next/static|_next/image|api/|favicon\\.ico|sw\\.js|manifest\\.json|icon-\\d+\\.(?:png|jpg|jpeg|svg|webp)|.+\\.(?:png|jpg|jpeg|gif|svg|webp|ico|json|js|css|woff2?)$).*)', '/api/auth/error'],
 };

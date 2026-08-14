@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { LucideIcon } from 'lucide-react';
+import { Tilt3D } from './Tilt3D';
 
 interface StatCardProps {
   title: string;
@@ -11,20 +12,22 @@ interface StatCardProps {
 }
 
 export const StatCard = ({ title, value, icon: Icon, trend }: StatCardProps) => (
-  <div className="bg-zinc-900/50 p-5 rounded-3xl border border-white/5 relative overflow-hidden">
-    <div className="flex justify-between items-start mb-2">
-      <div className="p-2 bg-orange-600/10 rounded-xl">
-        <Icon className="text-orange-500" size={20} />
+  <Tilt3D className="rounded-3xl h-full" intensity={8} scale={1.02} glareOpacity={0.12}>
+    <div className="bg-zinc-900/50 p-5 rounded-3xl border border-white/5 relative overflow-hidden h-full">
+      <div className="flex justify-between items-start mb-2">
+        <div className="p-2 bg-orange-600/10 rounded-xl">
+          <Icon className="text-orange-500" size={20} />
+        </div>
+        {trend && (
+          <span className="text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded-lg">
+            +{trend}%
+          </span>
+        )}
       </div>
-      {trend && (
-        <span className="text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded-lg">
-          +{trend}%
-        </span>
-      )}
+      <p className="text-zinc-500 text-[10px] font-black uppercase italic">{title}</p>
+      <p className="text-2xl font-black text-white italic tracking-tighter">{value}</p>
     </div>
-    <p className="text-zinc-500 text-[10px] font-black uppercase italic">{title}</p>
-    <p className="text-2xl font-black text-white italic tracking-tighter">{value}</p>
-  </div>
+  </Tilt3D>
 );
 
 interface FieldProps {

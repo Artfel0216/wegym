@@ -12,6 +12,9 @@ import {
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { AuthGuard } from '@/components/auth/AuthGuard';
+import { Tilt3D } from '@/components/ui/Tilt3D';
+import { ScrollReveal } from '@/components/ui/ScrollReveal';
+import { ParallaxField } from '@/components/ui/ParallaxField';
 import { useTranslations } from '@/lib/i18n/hook';
 
 export default function ProPage() {
@@ -66,12 +69,8 @@ export default function ProPage() {
 
   return (
     <AuthGuard>
-    <div className="min-h-screen bg-zinc-950 text-white pb-20 font-sans selection:bg-orange-500/30">
-      
-      <div className="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
-        <div className="absolute top-[-10%] right-[-10%] w-125 h-125 bg-orange-600/10 rounded-full blur-[120px]" />
-        <div className="absolute bottom-[10%] left-[-10%] w-100 h-100 bg-blue-600/5 rounded-full blur-[100px]" />
-      </div>
+    <div className="min-h-screen bg-zinc-950 text-white pb-20 font-sans selection:bg-orange-500/30 relative overflow-hidden">
+      <ParallaxField variant="subtle" />
 
       <header className="sticky top-0 z-50 bg-zinc-950/60 backdrop-blur-xl border-b border-white/5 px-6 py-5 flex items-center justify-between">
         <Link href="/profile" className="p-2 bg-white/5 rounded-full transition-colors hover:bg-white/10 cursor-pointer">
@@ -103,34 +102,41 @@ export default function ProPage() {
           </p>
         </section>
 
-        <section className="grid grid-cols-1 gap-4 mb-12">
+        <ScrollReveal className="grid grid-cols-1 gap-4 mb-12">
           {packages.map((pkg, idx) => (
-            <motion.div 
+            <Tilt3D
               key={pkg.id}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: idx * 0.1 }}
-              className="bg-zinc-900/40 border border-white/5 p-6 rounded-[35px] backdrop-blur-sm group hover:border-orange-500/30 transition-all"
+              className="rounded-[35px]"
+              intensity={6}
+              scale={1.015}
+              glareOpacity={0.12}
             >
-              <div className="flex items-center gap-4 mb-4">
-                <div className="p-3 bg-zinc-800 rounded-2xl group-hover:scale-110 transition-transform">
-                  {pkg.icon}
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: idx * 0.1 }}
+                className="bg-zinc-900/40 border border-white/5 p-6 rounded-[35px] backdrop-blur-sm group hover:border-orange-500/30 transition-all"
+              >
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="p-3 bg-zinc-800 rounded-2xl group-hover:scale-110 transition-transform">
+                    {pkg.icon}
+                  </div>
+                  <h3 className="font-black italic uppercase text-lg leading-tight">{pkg.title}</h3>
                 </div>
-                <h3 className="font-black italic uppercase text-lg leading-tight">{pkg.title}</h3>
-              </div>
-              <ul className="grid grid-cols-1 gap-3">
-                {pkg.features.map((feat, i) => (
-                  <li key={i} className="flex items-start gap-3 text-zinc-400 text-xs font-bold uppercase tracking-tight">
-                    <Check size={14} className="text-orange-500 mt-0.5 shrink-0" />
-                    <span>{feat}</span>
-                  </li>
-                ))}
-              </ul>
-            </motion.div>
+                <ul className="grid grid-cols-1 gap-3">
+                  {pkg.features.map((feat, i) => (
+                    <li key={i} className="flex items-start gap-3 text-zinc-400 text-xs font-bold uppercase tracking-tight">
+                      <Check size={14} className="text-orange-500 mt-0.5 shrink-0" />
+                      <span>{feat}</span>
+                    </li>
+                  ))}
+                </ul>
+              </motion.div>
+            </Tilt3D>
           ))}
-        </section>
+        </ScrollReveal>
 
-        <section className="bg-zinc-900/80 border-2 border-orange-500/30 rounded-[40px] p-8 relative overflow-hidden mb-10 shadow-2xl">
+        <ScrollReveal className="bg-zinc-900/80 border-2 border-orange-500/30 rounded-[40px] p-8 relative overflow-hidden mb-10 shadow-2xl">
           <div className="absolute top-0 right-0 p-6 opacity-10">
             <Zap size={100} className="text-orange-500 fill-orange-500" />
           </div>
@@ -150,14 +156,20 @@ export default function ProPage() {
             </button>
           </div>
 
-          <div className="text-center relative z-10 mb-8">
+          <motion.div
+            key={selectedPlan}
+            initial={{ opacity: 0, y: 12, rotateX: 14, transformPerspective: 500 }}
+            animate={{ opacity: 1, y: 0, rotateX: 0 }}
+            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            className="text-center relative z-10 mb-8"
+          >
             <div className="flex items-center justify-center gap-2">
               <span className="text-5xl font-black italic uppercase">
                 {selectedPlan === 'anual' ? t('pro.priceYearly') : t('pro.priceMonthly')}
               </span>
               <span className="text-zinc-500 text-xs font-bold uppercase">{t('pro.perMonth')}</span>
             </div>
-          </div>
+          </motion.div>
 
           <motion.button 
             whileHover={{ scale: 1.02 }}
@@ -168,7 +180,7 @@ export default function ProPage() {
             {t('pro.subscribe')}
             <CreditCard size={18} className="fill-black/10" />
           </motion.button>
-        </section>
+        </ScrollReveal>
 
       </main>
 

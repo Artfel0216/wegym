@@ -226,7 +226,7 @@
     "availableDays": "Available days",
     "customDays": "Enter available days",
     "height": "Height (m)",
-    "weight": "Weight (kg)",
+    "weight": "Weight",
     "bodyFat": "Body fat %",
     "medicalRestrictions": "Medical restrictions",
     "injuries": "Injuries / orthopedic history",
@@ -268,7 +268,6 @@
     "noExercises": "No exercises registered.",
     "evolutionHistory": "Evolution history",
     "date": "Date",
-    "weight": "Weight",
     "muscleGain": "Muscle gain",
     "fatLoss": "Fat loss",
     "addHistory": "Add history",
@@ -643,7 +642,8 @@
     "crefRequired": "Validate CREF before continuing.",
     "registrationFailed": "Registration error.",
     "connectionFailed": "Connection failed.",
-    "crefValidationFailed": "CREF validation failed. Check your connection."
+    "crefValidationFailed": "CREF validation failed. Check your connection.",
+    "invalidCredentials": "Invalid email or password."
   },
   "bluetooth": {
     "unsupported": "Bluetooth not supported on this device.",

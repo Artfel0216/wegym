@@ -11,6 +11,9 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { AuthGuard } from '@/components/auth/AuthGuard';
+import { Tilt3D } from '@/components/ui/Tilt3D';
+import { ScrollReveal } from '@/components/ui/ScrollReveal';
+import { ParallaxField } from '@/components/ui/ParallaxField';
 import { useTranslations } from '@/lib/i18n/hook';
 
 type PeriodKey = 'week' | 'month' | 'year';
@@ -76,7 +79,8 @@ export default function StatsPage() {
 
   return (
     <AuthGuard allowedRoles={['atleta']}>
-    <div className="min-h-screen bg-zinc-950 text-white pb-32 font-sans selection:bg-orange-500/30">
+    <div className="min-h-screen bg-zinc-950 text-white pb-32 font-sans selection:bg-orange-500/30 relative overflow-hidden">
+      <ParallaxField variant="subtle" />
       
       <header className="sticky top-0 z-50 bg-zinc-950/60 backdrop-blur-xl border-b border-white/5 px-6 py-5 flex items-center justify-between">
         <button 
@@ -116,25 +120,30 @@ export default function StatsPage() {
           </div>
         ) : (
           <>
-            <section className="grid grid-cols-2 gap-4">
+            <ScrollReveal className="grid grid-cols-2 gap-4">
               {stats.map((item, idx) => (
-                <motion.div 
+                <Tilt3D
                   key={idx}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.1 }}
-                  className="bg-zinc-900/40 border border-white/5 p-5 rounded-[30px] relative overflow-hidden group"
+                  className="rounded-[30px]"
+                  intensity={9}
+                  scale={1.02}
+                  glareOpacity={0.12}
+                  disabled={loading}
                 >
-                  <div className={`${item.color} mb-3 group-hover:scale-110 transition-transform`}>
-                    {item.icon}
+                  <div
+                    className="bg-zinc-900/40 border border-white/5 p-5 rounded-[30px] relative overflow-hidden group"
+                  >
+                    <div className={`${item.color} mb-3 group-hover:scale-110 transition-transform`}>
+                      {item.icon}
+                    </div>
+                    <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{item.label}</p>
+                    <p className="text-2xl font-black italic mt-1">{item.value}</p>
                   </div>
-                  <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{item.label}</p>
-                  <p className="text-2xl font-black italic mt-1">{item.value}</p>
-                </motion.div>
+                </Tilt3D>
               ))}
-            </section>
+            </ScrollReveal>
 
-            <section className="bg-zinc-900/40 border border-white/5 rounded-[40px] p-8">
+            <ScrollReveal className="bg-zinc-900/40 border border-white/5 rounded-[40px] p-8">
               <div className="flex justify-between items-end mb-8">
                 <div>
                   <h3 className="font-black italic uppercase text-sm">{t('stats.loadVolume')}</h3>
@@ -145,16 +154,18 @@ export default function StatsPage() {
                   )}
                 </div>
               </div>
-              <div className="flex items-end justify-between h-40 gap-2">
+              <div className="flex items-end justify-between h-40 gap-2" style={{ perspective: 500 }}>
                 {chartValues.length > 0 ? (
                   chartValues.map((value, i) => {
                     const height = (value / maxChartValue) * 100;
                     return (
-                      <div key={i} className="flex-1 flex flex-col items-center gap-3">
-                        <motion.div 
-                          initial={{ height: 0 }}
-                          animate={{ height: `${Math.max(height, 2)}%` }}
-                          className={`w-full rounded-t-lg ${i === chartValues.length - 1 ? 'bg-orange-600' : 'bg-zinc-800'}`}
+                      <div key={i} className="flex-1 flex flex-col items-center gap-3" style={{ transformStyle: 'preserve-3d' }}>
+                        <motion.div
+                          initial={{ height: 0, opacity: 0, rotateX: 45, transformPerspective: 500 }}
+                          whileInView={{ height: `${Math.max(height, 2)}%`, opacity: 1, rotateX: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ duration: 0.6, delay: i * 0.06, ease: [0.22, 1, 0.36, 1] }}
+                          className={`w-full rounded-t-lg ${i === chartValues.length - 1 ? 'bg-linear-to-t from-orange-600 to-orange-400 shadow-[0_0_20px_rgba(234,88,12,0.4)]' : 'bg-zinc-800'}`}
                         />
                       </div>
                     );
@@ -165,7 +176,7 @@ export default function StatsPage() {
                   </div>
                 )}
               </div>
-            </section>
+            </ScrollReveal>
           </>
         )}
       </main>

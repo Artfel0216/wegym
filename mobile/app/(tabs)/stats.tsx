@@ -14,15 +14,25 @@ export default function StatsScreen() {
   const [period, setPeriod] = useState<"week" | "month" | "year">("week");
   const [stats, setStats] = useState<WorkoutStats | null>(null);
   const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loadedPeriod, setLoadedPeriod] = useState<"week" | "month" | "year" | null>(null);
 
   useEffect(() => {
-    setLoading(true);
+    let cancelled = false;
     Promise.all([getStats(period), getChartData(period)])
-      .then(([s, c]) => { setStats(s); setChartData(c); })
+      .then(([s, c]) => {
+        if (cancelled) return;
+        setStats(s);
+        setChartData(c);
+        setLoadedPeriod(period);
+      })
       .catch(() => {})
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (!cancelled) setLoadedPeriod(period);
+      });
+    return () => { cancelled = true; };
   }, [period]);
+
+  const loading = loadedPeriod !== period;
 
   const cards = [
     { label: "Sessões", value: String(stats?.totalSessions ?? 0), color: "#ea580c" },

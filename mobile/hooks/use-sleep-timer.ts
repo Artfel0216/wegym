@@ -5,15 +5,23 @@ export interface SleepTimerHandle {
   stop: () => void;
 }
 
+type WakeLock = { release: () => void };
+
+function getWakeLock(): { request: (type: string) => Promise<WakeLock> } | undefined {
+  return (navigator as { wakeLock?: { request: (type: string) => Promise<WakeLock> } } | undefined)
+    ?.wakeLock;
+}
+
 export function useSleepTimer(onWake: () => void) {
-  const wakeLockRef = useRef<any>(null);
+  const wakeLockRef = useRef<WakeLock | null>(null);
   const screenTimeoutRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const lastActivityRef = useRef(Date.now());
+  const lastActivityRef = useRef(0);
 
   const keepAwake = useCallback(async () => {
     try {
-      if ((navigator as any)?.wakeLock) {
-        wakeLockRef.current = await (navigator as any).wakeLock.request("screen");
+      const wakeLock = getWakeLock();
+      if (wakeLock) {
+        wakeLockRef.current = await wakeLock.request("screen");
       }
     } catch {}
   }, []);

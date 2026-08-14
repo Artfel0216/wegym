@@ -37,10 +37,25 @@ export function usePWAInstall() {
 
 export function useRegisterSW() {
   useEffect(() => {
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("/sw.js").catch(() => {
-        // Silencioso
-      });
+    if (!("serviceWorker" in navigator)) return;
+
+    const hostname = window.location.hostname;
+    const isDev = hostname === "localhost" || hostname === "127.0.0.1";
+
+    if (isDev) {
+      navigator.serviceWorker.getRegistrations().then((registrations) =>
+        Promise.all(registrations.map((registration) => registration.unregister())),
+      );
+      if (window.caches) {
+        caches.keys().then((keys) =>
+          Promise.all(keys.map((key) => caches.delete(key))),
+        );
+      }
+      return;
     }
+
+    navigator.serviceWorker.register("/sw.js").catch(() => {
+      // Silencioso
+    });
   }, []);
 }

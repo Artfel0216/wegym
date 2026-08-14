@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
-import { AppError } from './errors';
+import { headers } from 'next/headers';
+import { AppError, UnauthorizedError } from './errors';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from './auth';
+import { verifyMobileToken } from './mobile-auth';
 import { cache } from './cache';
 import { logger } from './logger';
 
@@ -53,9 +55,25 @@ export function handleError(error: unknown) {
 }
 
 export async function authenticate() {
+  const headersList = await headers();
+  const authHeader = headersList.get('authorization');
+
+  if (authHeader?.toLowerCase().startsWith('bearer ')) {
+    const payload = await verifyMobileToken(authHeader.slice(7).trim());
+    if (!payload) {
+      throw new UnauthorizedError();
+    }
+    return {
+      user: {
+        id: payload.id,
+        role: payload.role,
+        email: payload.email ?? '',
+      },
+    };
+  }
+
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
-    const { UnauthorizedError } = await import('./errors');
     throw new UnauthorizedError();
   }
   return session;

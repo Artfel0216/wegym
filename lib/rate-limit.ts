@@ -1,7 +1,11 @@
 import { logger } from './logger';
 
 const WINDOW_MS = 10_000;
-const MAX_REQUESTS = 10;
+const PROD_MAX_REQUESTS = 10;
+const DEV_MAX_REQUESTS = 1_000;
+
+const MAX_REQUESTS =
+  process.env.NODE_ENV === 'production' ? PROD_MAX_REQUESTS : DEV_MAX_REQUESTS;
 
 const redisUrl = () => process.env.REDIS_URL;
 

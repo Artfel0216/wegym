@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { useTranslations } from '@/lib/i18n/hook';
@@ -9,9 +9,11 @@ const LGPD_CONSENT_KEY = 'wegym_lgpd_consent';
 
 export function ConsentBanner() {
   const { t } = useTranslations();
+  const [mounted, setMounted] = useState(false);
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     setVisible(!localStorage.getItem(LGPD_CONSENT_KEY));
   }, []);
 
@@ -19,6 +21,8 @@ export function ConsentBanner() {
     localStorage.setItem(LGPD_CONSENT_KEY, new Date().toISOString());
     setVisible(false);
   };
+
+  if (!mounted) return null;
 
   return (
     <AnimatePresence>

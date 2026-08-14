@@ -7,6 +7,9 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { AuthGuard } from '@/components/auth/AuthGuard';
 import { OnboardingTutorial } from '@/components/onboarding/OnboardingTutorial';
+import { Tilt3D } from '@/components/ui/Tilt3D';
+import { ScrollReveal } from '@/components/ui/ScrollReveal';
+import { ParallaxField } from '@/components/ui/ParallaxField';
 import {
   Flame, Clock, Trophy, MapPin, Activity,
   ChevronRight, Loader2, Sparkles, Calendar, Zap, History, Dumbbell, Wind, Bike,
@@ -149,8 +152,7 @@ export default function HomePage() {
     <AuthGuard allowedRoles={['atleta']}>
       <OnboardingTutorial role="atleta" />
     <div className="min-h-screen bg-zinc-950 text-zinc-100 pb-24 relative overflow-hidden antialiased font-sans">
-      <div className="fixed top-[-10%] right-[-5%] w-96 h-96 bg-orange-600/10 rounded-full blur-[140px] pointer-events-none" />
-      <div className="fixed bottom-[-10%] left-[-5%] w-80 h-80 bg-blue-600/5 rounded-full blur-[120px] pointer-events-none" />
+      <ParallaxField variant="subtle" />
 
       <header className="sticky top-0 z-40 bg-zinc-950/40 backdrop-blur-md border-b border-white/5 px-4 sm:px-6 py-4 pl-16 lg:pl-6 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
@@ -183,38 +185,46 @@ export default function HomePage() {
       </header>
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 pt-8 space-y-8 relative z-10">
-        <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          <StatCard
-            label={t('home.totalSessions')}
-            value={stats ? String(stats.totalSessions) : t('common.dash')}
-            sub={stats && stats.weekSessions > 0 ? `+${stats.weekSessions} ${t('home.thisWeek')}` : t('home.startTraining')}
-            icon={Activity}
-            accent="orange"
-          />
-          <StatCard
-            label={t('home.totalTime')}
-            value={stats ? STAT_FORMATTERS.hours(stats.totalSec) : t('common.dash')}
-            sub={stats && stats.weekSec > 0 ? `${STAT_FORMATTERS.hours(stats.weekSec)} ${t('home.inTheWeek')}` : t('home.registeredTime')}
-            icon={Clock}
-            accent="blue"
-          />
-          <StatCard
-            label={t('home.totalDistance')}
-            value={stats ? STAT_FORMATTERS.km(stats.totalKm) : t('common.dash')}
-            sub={t('home.distanceSubtitle')}
-            icon={MapPin}
-            accent="emerald"
-          />
-          <StatCard
-            label={t('home.activeDays')}
-            value={stats ? String(stats.activeDays) : t('common.dash')}
-            sub={stats && stats.activeDays > 0 ? t('home.consistency') : t('home.startToday')}
-            icon={Flame}
-            accent="rose"
-          />
-        </section>
+        <ScrollReveal className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <Tilt3D className="rounded-3xl" intensity={9} scale={1.03} glareOpacity={0.12}>
+            <StatCard
+              label={t('home.totalSessions')}
+              value={stats ? String(stats.totalSessions) : t('common.dash')}
+              sub={stats && stats.weekSessions > 0 ? `+${stats.weekSessions} ${t('home.thisWeek')}` : t('home.startTraining')}
+              icon={Activity}
+              accent="orange"
+            />
+          </Tilt3D>
+          <Tilt3D className="rounded-3xl" intensity={9} scale={1.03} glareOpacity={0.12}>
+            <StatCard
+              label={t('home.totalTime')}
+              value={stats ? STAT_FORMATTERS.hours(stats.totalSec) : t('common.dash')}
+              sub={stats && stats.weekSec > 0 ? `${STAT_FORMATTERS.hours(stats.weekSec)} ${t('home.inTheWeek')}` : t('home.registeredTime')}
+              icon={Clock}
+              accent="blue"
+            />
+          </Tilt3D>
+          <Tilt3D className="rounded-3xl" intensity={9} scale={1.03} glareOpacity={0.12}>
+            <StatCard
+              label={t('home.totalDistance')}
+              value={stats ? STAT_FORMATTERS.km(stats.totalKm) : t('common.dash')}
+              sub={t('home.distanceSubtitle')}
+              icon={MapPin}
+              accent="emerald"
+            />
+          </Tilt3D>
+          <Tilt3D className="rounded-3xl" intensity={9} scale={1.03} glareOpacity={0.12}>
+            <StatCard
+              label={t('home.activeDays')}
+              value={stats ? String(stats.activeDays) : t('common.dash')}
+              sub={stats && stats.activeDays > 0 ? t('home.consistency') : t('home.startToday')}
+              icon={Flame}
+              accent="rose"
+            />
+          </Tilt3D>
+        </ScrollReveal>
 
-        <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <ScrollReveal className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 bg-zinc-900/40 border border-white/5 rounded-4xl p-6 sm:p-8">
             <div className="flex items-start justify-between gap-4 mb-6">
               <div>
@@ -336,9 +346,9 @@ export default function HomePage() {
             </div>
             <Trophy size={140} className="absolute -right-6 -bottom-8 text-white/10 -rotate-12" />
           </aside>
-        </section>
+        </ScrollReveal>
 
-        <section>
+        <ScrollReveal>
           <div className="flex items-baseline justify-between mb-4">
             <h2 className="text-lg sm:text-xl font-black italic uppercase tracking-tighter text-white">
               {t('home.quickStart')}
@@ -351,30 +361,37 @@ export default function HomePage() {
             {quickModalities.map((m) => {
               const Icon = m.Icon;
               return (
-                <button
+                <Tilt3D
                   key={m.id}
-                  type="button"
-                  onClick={() => goModality(m.id)}
-                  className="bg-zinc-900/40 border border-white/5 rounded-[28px] p-5 flex flex-col items-start gap-3 hover:border-orange-500/40 hover:bg-zinc-900/60 transition-all cursor-pointer group"
+                  className="rounded-[28px]"
+                  intensity={12}
+                  scale={1.04}
+                  glareOpacity={0.14}
                 >
-                  <div className="w-10 h-10 rounded-2xl bg-zinc-950 border border-white/5 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Icon size={18} className="text-zinc-300 group-hover:text-orange-500 transition-colors" />
-                  </div>
-                  <div className="text-left">
-                    <p className="text-xs font-black italic uppercase tracking-tighter text-white leading-tight">
-                      {t(m.tKey ?? m.label)}
-                    </p>
-                    <p className="text-[9px] font-bold uppercase tracking-widest text-zinc-500 mt-1">
-                      {t('home.start')}
-                    </p>
-                  </div>
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => goModality(m.id)}
+                    className="bg-zinc-900/40 border border-white/5 rounded-[28px] p-5 flex flex-col items-start gap-3 hover:border-orange-500/40 hover:bg-zinc-900/60 transition-all cursor-pointer group w-full"
+                  >
+                    <div className="w-10 h-10 rounded-2xl bg-zinc-950 border border-white/5 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <Icon size={18} className="text-zinc-300 group-hover:text-orange-500 transition-colors" />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-xs font-black italic uppercase tracking-tighter text-white leading-tight">
+                        {t(m.tKey ?? m.label)}
+                      </p>
+                      <p className="text-[9px] font-bold uppercase tracking-widest text-zinc-500 mt-1">
+                        {t('home.start')}
+                      </p>
+                    </div>
+                  </button>
+                </Tilt3D>
               );
             })}
           </div>
-        </section>
+        </ScrollReveal>
 
-        <section className="bg-zinc-900/40 border border-white/5 rounded-4xl p-6 sm:p-8">
+        <ScrollReveal className="bg-zinc-900/40 border border-white/5 rounded-4xl p-6 sm:p-8">
           <div className="flex items-start justify-between gap-4 mb-6">
             <div>
               <p className="text-[9px] font-black uppercase tracking-[0.25em] text-zinc-500 mb-1">
@@ -426,7 +443,7 @@ export default function HomePage() {
               })}
             </ul>
           )}
-        </section>
+        </ScrollReveal>
       </main>
 
       {loadingProfile && !stats && (

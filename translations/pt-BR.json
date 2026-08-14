@@ -226,7 +226,7 @@
     "availableDays": "Dias disponíveis",
     "customDays": "Informe os dias disponíveis",
     "height": "Altura (m)",
-    "weight": "Peso (kg)",
+    "weight": "Peso",
     "bodyFat": "% Gordura corporal",
     "medicalRestrictions": "Restrições médicas",
     "injuries": "Lesões / histórico ortopédico",
@@ -268,7 +268,6 @@
     "noExercises": "Sem exercícios cadastrados.",
     "evolutionHistory": "Histórico de evolução",
     "date": "Data",
-    "weight": "Peso",
     "muscleGain": "Ganho de massa",
     "fatLoss": "Perda de gordura",
     "addHistory": "Adicionar histórico",
@@ -648,7 +647,8 @@
     "crefRequired": "Valide o CREF antes de continuar.",
     "registrationFailed": "Erro no cadastro.",
     "connectionFailed": "Falha de conexão.",
-    "crefValidationFailed": "Falha ao validar CREF. Verifique sua conexão."
+    "crefValidationFailed": "Falha ao validar CREF. Verifique sua conexão.",
+    "invalidCredentials": "E-mail ou senha inválidos."
   },
   "bluetooth": {
     "unsupported": "Bluetooth não suportado neste dispositivo.",

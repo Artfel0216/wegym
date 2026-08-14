@@ -22,6 +22,9 @@ import { AuthGuard } from '@/components/auth/AuthGuard';
 import { useGpsTracker } from '@/hooks/use-gps-tracker';
 import GpsSessionResult from '@/components/training/GpsSessionResult';
 import RouteMap from '@/components/training/RouteMap';
+import { Tilt3D } from '@/components/ui/Tilt3D';
+import { ScrollReveal } from '@/components/ui/ScrollReveal';
+import { ParallaxField } from '@/components/ui/ParallaxField';
 
 import { useTranslations } from '@/lib/i18n/hook';
 
@@ -484,17 +487,25 @@ const filtered = ALL_AVAILABLE_EXERCISES.filter(ex =>
   return (
     <AuthGuard allowedRoles={['atleta']}>
     <div className="min-h-screen bg-zinc-950 text-zinc-100 pb-24 relative overflow-hidden antialiased font-sans">
-      <button
+      <div className="fixed bottom-6 right-6 z-120">
+        <motion.div
+          aria-hidden
+          className="absolute inset-0 rounded-full bg-orange-600/50"
+          animate={{ scale: [1, 1.45, 1], opacity: [0.45, 0, 0.45] }}
+          transition={{ duration: 2.2, repeat: Infinity, ease: 'easeOut' }}
+        />
+        <button
   type="button"
   role="button"
   tabIndex={0}
   onClick={() => setChatOpen(true)}
   onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setChatOpen(true); } }}
-  className="fixed bottom-6 right-6 z-120 w-16 h-16 rounded-full bg-orange-600 border border-orange-400 shadow-2xl shadow-orange-600/40 flex items-center justify-center hover:scale-105 transition-all btn-fab"
+  className="relative w-16 h-16 rounded-full bg-orange-600 border border-orange-400 shadow-2xl shadow-orange-600/40 flex items-center justify-center hover:scale-105 transition-all btn-fab"
 >
   <MessageCircle className="text-white" size={28} />
 </button>
-      <div className="fixed top-[-5%] right-[-5%] w-80 h-80 bg-orange-600/10 rounded-full blur-[120px] pointer-events-none" />
+      </div>
+      <ParallaxField />
 
       <header className="sticky top-0 z-50 bg-zinc-950/40 backdrop-blur-md border-b border-white/5 px-4 sm:px-6 py-4 flex justify-between items-center gap-2 pl-16 lg:pl-6">
         <div className="flex items-center gap-3 min-w-0">
@@ -548,23 +559,42 @@ const filtered = ALL_AVAILABLE_EXERCISES.filter(ex =>
                 <button
                   key={index}
                   onClick={() => setActiveDay(index)}
-                  className={`shrink-0 px-6 py-3 rounded-2xl font-black text-xs uppercase italic border transition-all cursor-pointer hover:border-orange-500 ${activeDay === index ? 'bg-orange-600 border-orange-400 text-white' : 'bg-zinc-900/50 border-white/5 text-zinc-500'}`}
+                  className={`shrink-0 relative px-6 py-3 rounded-2xl font-black text-xs uppercase italic border transition-all cursor-pointer hover:border-orange-500 ${activeDay === index ? 'text-white border-transparent' : 'bg-zinc-900/50 border-white/5 text-zinc-500'}`}
                 >
-                  {t(DAY_TKEY_MAP[plan.day] ?? plan.day)}
+                  {activeDay === index && (
+                    <motion.div
+                      layoutId="active-day-pill"
+                      className="absolute inset-0 bg-orange-600 border border-orange-400 rounded-2xl shadow-lg shadow-orange-600/30"
+                      transition={{ type: 'spring', stiffness: 320, damping: 30 }}
+                    />
+                  )}
+                  <span className="relative z-10">{t(DAY_TKEY_MAP[plan.day] ?? plan.day)}</span>
                 </button>
               ))}
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <aside className="space-y-6">
+                <Tilt3D className="rounded-3xl" intensity={7} scale={1.01}>
                 <div className="bg-zinc-900/50 p-6 rounded-3xl border border-white/5 text-center">
                   <div className="flex justify-between items-center mb-4 text-zinc-400">
                     <Timer size={18} />
                     <RotateCcw size={16} onClick={() => setTimeLeft(60)} className="cursor-pointer hover:text-white transition-colors" />
                   </div>
-                  <div className="text-6xl font-black text-white mb-6 font-mono tracking-tighter">
-                    {timeLeft}
-                    <span className="text-2xl text-orange-500">s</span>
+                  <div className="relative h-16 mb-6">
+                    <AnimatePresence>
+                      <motion.div
+                        key={timeLeft}
+                        initial={{ opacity: 0, y: 14, rotateX: 75, transformPerspective: 400 }}
+                        animate={{ opacity: 1, y: 0, rotateX: 0 }}
+                        exit={{ opacity: 0, y: -14, rotateX: -75 }}
+                        transition={{ duration: 0.22, ease: 'easeOut' }}
+                        className="absolute inset-0 flex items-center justify-center text-6xl font-black text-white font-mono tracking-tighter"
+                      >
+                        {timeLeft}
+                        <span className="text-2xl text-orange-500 ml-1">s</span>
+                      </motion.div>
+                    </AnimatePresence>
                   </div>
                   <button
                     onClick={() => setTimerActive(!timerActive)}
@@ -573,7 +603,9 @@ const filtered = ALL_AVAILABLE_EXERCISES.filter(ex =>
                     {timerActive ? t('training.pause') : t('training.startRest')}
                   </button>
                 </div>
+                </Tilt3D>
 
+                <Tilt3D className="rounded-3xl" intensity={6} scale={1.01}>
                 <div className="bg-zinc-900/50 p-6 rounded-3xl border border-white/5 space-y-4">
                   <div className="text-center">
                     <p className="text-xs font-black uppercase italic text-zinc-400 mb-3">{t('training.workoutProgress')}</p>
@@ -582,22 +614,45 @@ const filtered = ALL_AVAILABLE_EXERCISES.filter(ex =>
                         <div ref={progressBarRef} className="h-full bg-linear-to-r from-orange-500 to-orange-600 transition-all duration-300" />
                       </div>
                     </div>
-                    <p className="text-2xl font-black text-white">{progressPercentage}%</p>
+                    <div className="relative h-9">
+                      <AnimatePresence>
+                        <motion.div
+                          key={progressPercentage}
+                          initial={{ opacity: 0, y: 10, rotateX: 60, transformPerspective: 400 }}
+                          animate={{ opacity: 1, y: 0, rotateX: 0 }}
+                          exit={{ opacity: 0, y: -10, rotateX: -60 }}
+                          transition={{ duration: 0.25, ease: 'easeOut' }}
+                          className="absolute inset-0 text-2xl font-black text-white"
+                        >
+                          {progressPercentage}%
+                        </motion.div>
+                      </AnimatePresence>
+                    </div>
                   </div>
                 </div>
+                </Tilt3D>
 
+                <Tilt3D className="rounded-2xl" intensity={8} scale={1.02}>
                 <button
                   onClick={() => { setShowAI(true); setAiStep('workout_goal'); }}
-                  className="w-full px-6 py-4 bg-orange-600 rounded-2xl shadow-2xl shadow-orange-600/40 border border-orange-400/50 hover:bg-orange-700 transition-all cursor-pointer"
+                  className="relative w-full px-6 py-4 bg-orange-600 rounded-2xl shadow-2xl shadow-orange-600/40 border border-orange-400/50 hover:bg-orange-700 transition-all cursor-pointer overflow-hidden"
                 >
-                  <div className="flex items-center justify-center gap-3">
+                  <motion.div
+                    aria-hidden
+                    className="absolute inset-0 bg-white/10 rounded-2xl"
+                    animate={{ opacity: [0.2, 0.05, 0.2] }}
+                    transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
+                  />
+                  <div className="relative flex items-center justify-center gap-3">
                     <span className="text-white font-black uppercase italic text-sm">{t('training.generateAI')}</span>
                     <Zap className="text-white w-5 h-5" />
                   </div>
                 </button>
+                </Tilt3D>
               </aside>
 
-              <section className="lg:col-span-2 space-y-4">
+              <ScrollReveal className="lg:col-span-2 space-y-4" y={24} rotateX={10}>
+                <section className="space-y-4">
                 <div className="bg-zinc-900/50 rounded-3xl border border-white/5 overflow-hidden">
                   <div className="p-5 border-b border-white/5 flex justify-between items-center">
                     <h2 className="font-black italic uppercase text-white leading-tight">
@@ -605,30 +660,43 @@ const filtered = ALL_AVAILABLE_EXERCISES.filter(ex =>
                     </h2>
                     <Activity size={20} className="text-orange-500 opacity-30" />
                   </div>
-                  <div className="divide-y divide-white/5">
-                    {currentPlan.exercises.length > 0 ? (
-                      currentPlan.exercises.map((ex, idx) => (
+                <div>
+                  {currentPlan.exercises.length > 0 ? (
+                    currentPlan.exercises.map((ex, idx) => (
+                      <motion.div
+                        key={ex.id || idx}
+                        initial={{ opacity: 0, y: 16, rotateX: 10 }}
+                        animate={{ opacity: 1, y: 0, rotateX: 0 }}
+                        transition={{ delay: idx * 0.05, duration: 0.35, ease: 'easeOut' }}
+                        style={{ transformPerspective: 600 }}
+                      >
                         <ExerciseItem
-                          key={ex.id || idx}
                           ex={ex}
                           isCompleted={!!ex.id && completedIds.includes(ex.id)}
                           onToggle={toggleExercise}
                         />
-                      ))
-                    ) : (
+                      </motion.div>
+                    ))
+                  ) : (
                       <div className="p-16 text-center text-zinc-600 font-black uppercase italic text-xs">{t('training.noWorkouts')}</div>
                     )}
                   </div>
                 </div>
-              </section>
+                </section>
+              </ScrollReveal>
             </div>
           </>
         ) : (
           <div className="max-w-xl mx-auto space-y-6 pb-8">
-            <div className="flex items-center gap-3 text-zinc-500">
+            <motion.div
+              initial={{ opacity: 0, y: -12, rotateX: 15, transformPerspective: 500 }}
+              animate={{ opacity: 1, y: 0, rotateX: 0 }}
+              transition={{ duration: 0.45, ease: 'easeOut' }}
+              className="flex items-center gap-3 text-zinc-500"
+            >
               {React.createElement(currentModalityMeta.Icon, { className: 'text-orange-500', size: 22 })}
               <p className="text-sm font-bold uppercase tracking-wide">{t(currentModalityMeta.tKey)}</p>
-            </div>
+            </motion.div>
 
             {isGpsModality && useGpsMode ? (
               <>
@@ -724,11 +792,23 @@ const filtered = ALL_AVAILABLE_EXERCISES.filter(ex =>
                       </div>
                     </div>
 
+                    <Tilt3D className="rounded-3xl" intensity={6} scale={1.01}>
                     <div className="bg-zinc-900/50 p-5 rounded-3xl border border-white/5">
                       <p className="text-[10px] font-black uppercase italic text-zinc-400 mb-2">{t('training.sessionTime')}</p>
-                      <p className="text-4xl font-black text-white font-mono tracking-tight tabular-nums">
-                        {formatDurationHMS(gps.liveSec)}
-                      </p>
+                      <div className="relative h-11">
+                        <AnimatePresence>
+                          <motion.div
+                            key={gps.liveSec}
+                            initial={{ opacity: 0, y: 10, rotateX: 70, transformPerspective: 400 }}
+                            animate={{ opacity: 1, y: 0, rotateX: 0 }}
+                            exit={{ opacity: 0, y: -10, rotateX: -70 }}
+                            transition={{ duration: 0.18, ease: 'easeOut' }}
+                            className="absolute inset-0 text-4xl font-black text-white font-mono tracking-tight tabular-nums"
+                          >
+                            {formatDurationHMS(gps.liveSec)}
+                          </motion.div>
+                        </AnimatePresence>
+                      </div>
                       {bleState === "connected" && lastHR && (
                         <div className="mt-4 flex items-center gap-2 text-emerald-400">
                           <HeartPulse size={18} className="animate-pulse" />
@@ -737,14 +817,17 @@ const filtered = ALL_AVAILABLE_EXERCISES.filter(ex =>
                         </div>
                       )}
                     </div>
+                    </Tilt3D>
 
                     {gps.liveCoordinates.length >= 2 && (
+                      <Tilt3D className="rounded-3xl" intensity={5} scale={1.01} glare={false}>
                       <div className="bg-zinc-900/50 p-3 rounded-3xl border border-white/5">
                         <p className="text-[9px] font-black uppercase italic text-zinc-400 mb-2">{t('training.resultRoute')}</p>
                         <div className="w-full rounded-2xl overflow-hidden" style={{ height: 200 }}>
                           <RouteMap coordinates={gps.liveCoordinates} height={200} interactive={true} />
                         </div>
                       </div>
+                      </Tilt3D>
                     )}
                   </>
                 ) : (
@@ -861,11 +944,23 @@ const filtered = ALL_AVAILABLE_EXERCISES.filter(ex =>
                   </div>
                 </div>
 
+                <Tilt3D className="rounded-3xl" intensity={6} scale={1.01}>
                 <div className="bg-zinc-900/50 p-8 rounded-3xl border border-white/5 text-center">
                   <p className="text-[10px] font-black uppercase italic text-zinc-500 mb-2">{t('training.sessionTime')}</p>
-                  <p className="text-5xl sm:text-6xl font-black text-white font-mono tracking-tight tabular-nums">
-                    {formatDurationHMS(sessionSec)}
-                  </p>
+                  <div className="relative h-16">
+                    <AnimatePresence>
+                      <motion.div
+                        key={sessionSec}
+                        initial={{ opacity: 0, y: 12, rotateX: 70, transformPerspective: 400 }}
+                        animate={{ opacity: 1, y: 0, rotateX: 0 }}
+                        exit={{ opacity: 0, y: -12, rotateX: -70 }}
+                        transition={{ duration: 0.18, ease: 'easeOut' }}
+                        className="absolute inset-0 text-5xl sm:text-6xl font-black text-white font-mono tracking-tight tabular-nums"
+                      >
+                        {formatDurationHMS(sessionSec)}
+                      </motion.div>
+                    </AnimatePresence>
+                  </div>
                   <div className="mt-4">
                     <p className="text-[10px] font-black uppercase italic text-zinc-500 mb-1">{t('training.laps')}</p>
                     <p className="text-4xl font-black text-orange-500 font-mono">{lapCount}</p>
@@ -922,14 +1017,27 @@ const filtered = ALL_AVAILABLE_EXERCISES.filter(ex =>
                     </button>
                   </div>
                 </div>
+                </Tilt3D>
               </>
             ) : (
               <>
+                <Tilt3D className="rounded-3xl" intensity={6} scale={1.01}>
                 <div className="bg-zinc-900/50 p-8 rounded-3xl border border-white/5 text-center">
                   <p className="text-[10px] font-black uppercase italic text-zinc-500 mb-2">{t('training.sessionTime')}</p>
-                  <p className="text-5xl sm:text-6xl font-black text-white font-mono tracking-tight tabular-nums">
-                    {formatDurationHMS(sessionSec)}
-                  </p>
+                  <div className="relative h-16">
+                    <AnimatePresence>
+                      <motion.div
+                        key={sessionSec}
+                        initial={{ opacity: 0, y: 12, rotateX: 70, transformPerspective: 400 }}
+                        animate={{ opacity: 1, y: 0, rotateX: 0 }}
+                        exit={{ opacity: 0, y: -12, rotateX: -70 }}
+                        transition={{ duration: 0.18, ease: 'easeOut' }}
+                        className="absolute inset-0 text-5xl sm:text-6xl font-black text-white font-mono tracking-tight tabular-nums"
+                      >
+                        {formatDurationHMS(sessionSec)}
+                      </motion.div>
+                    </AnimatePresence>
+                  </div>
                   {bleState === "connected" && lastHR && (
                     <div className="mt-4 flex items-center justify-center gap-2 text-emerald-400">
                       <HeartPulse size={18} className="animate-pulse" />
@@ -967,9 +1075,11 @@ const filtered = ALL_AVAILABLE_EXERCISES.filter(ex =>
                     </button>
                   </div>
                 </div>
+                </Tilt3D>
               </>
             )}
 
+            <ScrollReveal className="rounded-3xl" y={24} rotateX={10}>
             <div className="bg-zinc-900/50 rounded-3xl border border-white/5 overflow-hidden">
               <div className="p-4 border-b border-white/5 flex items-center gap-2">
                 <History size={18} className="text-orange-500" />
@@ -1011,6 +1121,7 @@ const filtered = ALL_AVAILABLE_EXERCISES.filter(ex =>
                 )}
               </ul>
             </div>
+            </ScrollReveal>
           </div>
         )}
       </main>

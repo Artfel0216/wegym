@@ -39,7 +39,7 @@ export async function addXP(amount: number): Promise<{ levelUp: boolean; newLeve
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
     const yesterdayStr = yesterday.toISOString().slice(0, 10);
-    let streak = lastActivity === yesterdayStr ? state.streak + 1 : 1;
+    const streak = lastActivity === yesterdayStr ? state.streak + 1 : 1;
     await AsyncStorage.setItem(STREAK_KEY, String(streak));
     await AsyncStorage.setItem(LAST_ACTIVITY_KEY, today);
     if (streak === 7) achievements.push("streak_7");

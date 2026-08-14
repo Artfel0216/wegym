@@ -1,10 +1,17 @@
-const CACHE = "wegym-v3";
+const CACHE = "wegym-v4";
 const PRECACHE_URLS = ["/", "/offline"];
 
 const STATIC_CACHE = "wegym-static";
 const API_CACHE = "wegym-api";
 
+const IS_DEV = ["localhost", "127.0.0.1"].includes(self.location.hostname);
+
 self.addEventListener("install", (event) => {
+  if (IS_DEV) {
+    event.waitUntil(self.registration.unregister());
+    self.skipWaiting();
+    return;
+  }
   event.waitUntil(
     caches.open(CACHE)
       .then((cache) => cache.addAll(PRECACHE_URLS))
@@ -14,16 +21,23 @@ self.addEventListener("install", (event) => {
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys()
-      .then((keys) => Promise.all(
+    (async () => {
+      if (IS_DEV) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map((key) => caches.delete(key)));
+        return;
+      }
+      const keys = await caches.keys();
+      await Promise.all(
         keys.filter((k) => k !== CACHE && k !== STATIC_CACHE && k !== API_CACHE)
           .map((k) => caches.delete(k)),
-      ))
-      .then(() => self.clients.claim()),
+      );
+    })().then(() => self.clients.claim()),
   );
 });
 
 self.addEventListener("fetch", (event) => {
+  if (IS_DEV) return;
   if (event.request.method !== "GET") return;
 
   const { pathname } = new URL(event.request.url);
@@ -43,8 +57,12 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  if (pathname.startsWith("/api/auth/")) {
+    return;
+  }
+
   if (pathname.startsWith("/api/")) {
-    event.respondWith(networkFirst(event.request, API_CACHE, 60));
+    event.respondWith(apiFirst(event.request));
     return;
   }
 
@@ -86,5 +104,24 @@ async function networkFirst(request, cacheName, ttlSeconds) {
     clearTimeout(timeoutId);
     const cached = await caches.match(request, { cacheName });
     return cached || caches.match("/offline");
+  }
+}
+
+async function apiFirst(request) {
+  const cached = await caches.match(request, { cacheName: API_CACHE });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 3000);
+
+  try {
+    const response = await fetch(request, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    if (response.ok) {
+      const clone = response.clone();
+      caches.open(API_CACHE).then((cache) => cache.put(request, clone));
+    }
+    return response;
+  } catch {
+    clearTimeout(timeoutId);
+    return cached;
   }
 }

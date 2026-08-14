@@ -11,17 +11,18 @@ type LoginResponse = {
 };
 
 export async function login(email: string, password: string) {
-  const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/auth/callback/credentials`, {
+  const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password, csrfToken: "" }),
+    body: JSON.stringify({ email, password }),
   });
 
   if (!res.ok) {
-    throw new Error("Email ou senha inválidos");
+    const error = (await res.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(error?.error ?? "Email ou senha inválidos");
   }
 
-  const data = await res.json();
+  const data = (await res.json()) as LoginResponse;
   await setToken(data.token);
   return data.user;
 }

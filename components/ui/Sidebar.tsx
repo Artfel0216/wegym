@@ -46,15 +46,20 @@ export function useSidebar(): SidebarState {
 }
 
 export function SidebarProvider({ children }: { children: React.ReactNode }) {
-  const [collapsed, setCollapsedState] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return false;
-    try {
-      return localStorage.getItem(STORAGE_KEY) === "1";
-    } catch {
-      return false;
-    }
-  });
-  const [hydrated] = useState(() => typeof window !== 'undefined');
+  const [collapsed, setCollapsedState] = useState<boolean>(false);
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      setHydrated(true);
+      try {
+        if (localStorage.getItem(STORAGE_KEY) === "1") setCollapsedState(true);
+      } catch {
+        // localStorage indisponível
+      }
+    }, 0);
+    return () => window.clearTimeout(id);
+  }, []);
 
   const setCollapsed = useCallback((v: boolean) => {
     setCollapsedState(v);
@@ -228,17 +233,25 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
       >
         {showLabels ? (
           <div className="flex items-center gap-2 min-w-0">
-            <div className="w-9 h-9 bg-orange-600 rounded-xl flex items-center justify-center shrink-0">
-              <Dumbbell className="text-white w-5 h-5" />
-            </div>
+            <motion.div
+              whileHover={{ rotateY: 16, rotateX: 10, scale: 1.1 }}
+              style={{ transformPerspective: 500, transformStyle: "preserve-3d" }}
+              className="w-9 h-9 bg-orange-600 rounded-xl flex items-center justify-center shrink-0"
+            >
+              <Dumbbell className="text-white w-5 h-5" style={{ transform: "translateZ(14px)" }} />
+            </motion.div>
             <span className="text-base font-black italic tracking-tighter text-white truncate">
               {t('common.brandName')}
             </span>
           </div>
         ) : (
-          <div className="w-10 h-10 bg-orange-600 rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-orange-600/20">
-            <Dumbbell className="text-white w-5 h-5" />
-          </div>
+          <motion.div
+            whileHover={{ rotateY: 16, rotateX: 10, scale: 1.1 }}
+            style={{ transformPerspective: 500, transformStyle: "preserve-3d" }}
+            className="w-10 h-10 bg-orange-600 rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-orange-600/20"
+          >
+            <Dumbbell className="text-white w-5 h-5" style={{ transform: "translateZ(14px)" }} />
+          </motion.div>
         )}
 
         {mobile ? (

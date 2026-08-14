@@ -4,10 +4,11 @@ export const dynamic = 'force-dynamic';
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { getSession, signIn, useSession } from 'next-auth/react';
 import { Eye, EyeOff, Loader2, Dumbbell, Mail, Lock, User, IdCard, MapPin, ExternalLink, ChevronDown, Heart, Activity, CheckCircle2 } from 'lucide-react';
 import { AnimatedBackground } from '@/components/ui/AnimatedBackground';
+import { Tilt3D } from '@/components/ui/Tilt3D';
 import { EXPERIENCE_OPTIONS } from '@/constants/options';
 import { LeftPanel } from '@/components/ui/LeftPanel';
 import { maskCEP, maskCPF } from '@/utils/masks';
@@ -17,7 +18,20 @@ import { useTranslations } from '@/lib/i18n/hook';
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { data: session, status } = useSession();
+  const { t } = useTranslations();
+
+  useEffect(() => {
+    const authError = searchParams.get('error');
+    if (authError) {
+      const errorMap: Record<string, string> = {
+        CredentialsSignin: t('errors.invalidCredentials'),
+      };
+      setError(errorMap[authError] || t('errors.connectionFailed'));
+      router.replace('/login');
+    }
+  }, [searchParams, router, t]);
 
   useEffect(() => {
     if (status === "authenticated" && session?.user?.role) {
@@ -38,8 +52,6 @@ export default function LoginPage() {
   const [userType, setUserType] = useState<'atleta' | 'personal'>('atleta');
   const [isVerifyingCref, setIsVerifyingCref] = useState<boolean>(false);
   const [crefVerified, setCrefVerified] = useState<boolean>(false);
-
-  const { t } = useTranslations();
 
   const [formData, setFormData] = useState({
     name: '', email: '', cpf: '', cep: '', city: '', state: '', password: '', confirmPassword: '',
@@ -145,17 +157,24 @@ const handleAuth = useCallback(async (e: React.FormEvent) => {
       });
 
       if (res?.error) {
-        setError(res.error);
+        const errorMap: Record<string, string> = {
+          CredentialsSignin: t('errors.invalidCredentials'),
+        };
+        setError(errorMap[res.error] || t('errors.connectionFailed'));
         setIsLoading(false);
       } else {
-        const session = await getSession();
-        const role = (session?.user as { role?: string } | undefined)?.role;
-
-        if (role === 'personal') {
-          router.push('/personal');
-        } else {
-          router.push('/home');
+        try {
+          const session = await getSession();
+          const role = (session?.user as { role?: string } | undefined)?.role;
+          if (role === 'personal') {
+            router.push('/personal');
+            return;
+          }
+        } catch {
+          // session refetch failed transiently; AuthGuard on /home
+          // resolves the role and redirects /personal users
         }
+        router.push('/home');
       }
     } else {
       const res = await fetch('/api/auth/register', {
@@ -200,7 +219,12 @@ const handleAuth = useCallback(async (e: React.FormEvent) => {
     <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4 sm:p-8 selection:bg-orange-500 selection:text-white relative overflow-hidden">
       <AnimatedBackground />
 
-      <div className="w-full max-w-6xl bg-zinc-900/50 backdrop-blur-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row relative z-10 border border-zinc-800 my-auto max-h-fit">
+      <Tilt3D
+        intensity={4}
+        scale={1.006}
+        glareOpacity={0.1}
+        className="w-full max-w-6xl bg-zinc-900/50 backdrop-blur-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row relative z-10 border border-zinc-800 my-auto max-h-fit"
+      >
         <LeftPanel />
 
         <div className="w-full md:w-2/3 p-8 sm:p-12 relative flex items-start justify-center max-h-[85vh] overflow-y-auto">
@@ -526,7 +550,7 @@ const handleAuth = useCallback(async (e: React.FormEvent) => {
             </div>
           </div>
         </div>
-      </div>
+      </Tilt3D>
     </div>
   );
 }

@@ -8,6 +8,8 @@ import { useTranslations } from "@/lib/i18n/hook";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { AuthGuard } from "@/components/auth/AuthGuard";
+import { ScrollReveal } from "@/components/ui/ScrollReveal";
+import { ParallaxField } from "@/components/ui/ParallaxField";
 import {
   Activity,
   Calendar,
@@ -373,8 +375,7 @@ export default function ProfilePage() {
   return (
     <AuthGuard>
     <div className="min-h-screen bg-zinc-950 text-zinc-100 pb-20 relative overflow-hidden antialiased font-sans">
-      <div className="fixed top-[-12%] right-[-8%] w-md h-112 bg-orange-600/8 rounded-full blur-[140px] pointer-events-none" />
-      <div className="fixed bottom-[-15%] left-[-10%] w-[24rem] h-96 bg-blue-600/5 rounded-full blur-[120px] pointer-events-none" />
+      <ParallaxField variant="subtle" />
 
       <Toast toast={toast} />
 
@@ -388,54 +389,72 @@ export default function ProfilePage() {
       </header>
 
       <main className="max-w-3xl mx-auto px-4 sm:px-6 pt-8 space-y-6 relative z-10">
-        <IdentityCard
-          userData={userData}
-          isAtleta={isAtleta}
-          editing={editingField === "name"}
-          draft={draft}
-          setDraft={setDraft}
-          onStartEdit={() => startEdit("name")}
-          onCommit={commitEdit}
-          onCancel={cancelEdit}
-          onAvatarChange={() => triggerToast(t('profile.avatarSoon'), "info")}
-        />
-
-        {isAtleta ? (
-          <PhysicalDataSection
-            pesoKg={userData.pesoKg}
-            alturaCm={userData.alturaCm}
-            imc={imc}
-            editingField={editingField}
+        <ScrollReveal>
+          <IdentityCard
+            userData={userData}
+            isAtleta={isAtleta}
+            editing={editingField === "name"}
             draft={draft}
             setDraft={setDraft}
-            onStartEdit={startEdit}
+            onStartEdit={() => startEdit("name")}
             onCommit={commitEdit}
             onCancel={cancelEdit}
+            onAvatarChange={() => triggerToast(t('profile.avatarSoon'), "info")}
           />
+        </ScrollReveal>
+
+        {isAtleta ? (
+          <ScrollReveal delay={0.06}>
+            <PhysicalDataSection
+              pesoKg={userData.pesoKg}
+              alturaCm={userData.alturaCm}
+              imc={imc}
+              editingField={editingField}
+              draft={draft}
+              setDraft={setDraft}
+              onStartEdit={startEdit}
+              onCommit={commitEdit}
+              onCancel={cancelEdit}
+            />
+          </ScrollReveal>
         ) : (
-          <CredentialSection cref={userData.cref} />
+          <ScrollReveal delay={0.06}>
+            <CredentialSection cref={userData.cref} />
+          </ScrollReveal>
         )}
 
-        <AccountSection
-          isPro={isPro}
-          isSyncing={isSyncing}
-          onUpgrade={() => router.push("/pro")}
-          onSync={syncHealthData}
-          bleState={bleState}
-          bleDevice={bleDevice}
-          lastHR={lastHR}
-        />
-        <DataPrivacySection triggerToast={triggerToast} />
-        <ResourcesSection />
-        <DevicesSection
-          bleState={bleState}
-          bleDevice={bleDevice}
-          lastHR={lastHR}
-          onSync={syncHealthData}
-          isSyncing={isSyncing}
-        />
-        <IntegrationsSection triggerToast={triggerToast} />
-        <PwaSection isInstallable={isInstallable} isStandalone={isStandalone} onInstall={install} />
+        <ScrollReveal delay={0.1}>
+          <AccountSection
+            isPro={isPro}
+            isSyncing={isSyncing}
+            onUpgrade={() => router.push("/pro")}
+            onSync={syncHealthData}
+            bleState={bleState}
+            bleDevice={bleDevice}
+            lastHR={lastHR}
+          />
+        </ScrollReveal>
+        <ScrollReveal delay={0.14}>
+          <DataPrivacySection triggerToast={triggerToast} />
+        </ScrollReveal>
+        <ScrollReveal delay={0.18}>
+          <ResourcesSection />
+        </ScrollReveal>
+        <ScrollReveal delay={0.22}>
+          <DevicesSection
+            bleState={bleState}
+            bleDevice={bleDevice}
+            lastHR={lastHR}
+            onSync={syncHealthData}
+            isSyncing={isSyncing}
+          />
+        </ScrollReveal>
+        <ScrollReveal delay={0.26}>
+          <IntegrationsSection triggerToast={triggerToast} />
+        </ScrollReveal>
+        <ScrollReveal delay={0.3}>
+          <PwaSection isInstallable={isInstallable} isStandalone={isStandalone} onInstall={install} />
+        </ScrollReveal>
       </main>
     </div>
     </AuthGuard>
