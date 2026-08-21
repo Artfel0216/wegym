@@ -40,13 +40,15 @@ export const socialService = {
   },
 
   async toggleLike(postId: string, userId: string) {
-    const existing = await prisma.socialLike.findUnique({ where: { postId_userId: { postId, userId } } });
-    if (existing) {
-      await prisma.socialLike.delete({ where: { id: existing.id } });
-      return { liked: false };
-    }
-    await prisma.socialLike.create({ data: { postId, userId } });
-    return { liked: true };
+    return prisma.$transaction(async (tx) => {
+      const existing = await tx.socialLike.findUnique({ where: { postId_userId: { postId, userId } } });
+      if (existing) {
+        await tx.socialLike.delete({ where: { id: existing.id } });
+        return { liked: false };
+      }
+      await tx.socialLike.create({ data: { postId, userId } });
+      return { liked: true };
+    });
   },
 
   async addComment(postId: string, userId: string, text: string) {

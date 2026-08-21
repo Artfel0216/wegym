@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { chatService } from '@/lib/services/chat.service';
-import { authenticate, handleError } from '@/lib/api-utils';
+import { authenticate, handleError, withRateLimit } from '@/lib/api-utils';
 import { chatSchema } from '@/lib/validation';
 import { ValidationError } from '@/lib/errors';
 
@@ -10,7 +10,9 @@ export const maxDuration = 30;
 
 export async function POST(request: Request) {
   try {
-    await authenticate();
+    const session = await authenticate();
+    const rateLimitResponse = await withRateLimit(request, `chat:${session.user.id}`);
+    if (rateLimitResponse) return rateLimitResponse;
 
     const body = await request.json();
     const parsed = chatSchema.safeParse(body);

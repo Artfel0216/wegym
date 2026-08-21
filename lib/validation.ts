@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const emailSchema = z.string().email('Email inválido').transform(v => v.toLowerCase().trim());
 
-export const passwordSchema = z.string().min(6, 'Senha deve ter no mínimo 6 caracteres');
+export const passwordSchema = z.string().min(8, 'Senha deve ter no mínimo 8 caracteres');
 
 export const cpfSchema = z.string().transform(v => v.replace(/\D/g, '')).pipe(
   z.string().length(11, 'CPF deve ter 11 dígitos'),
@@ -85,6 +85,130 @@ export const paymentSchema = z.object({
 export const chatSchema = z.object({
   message: z.string().min(1, 'Mensagem vazia').max(2000, 'Mensagem muito longa'),
   level: z.enum(['Iniciante', 'Intermediário', 'Avançado']).optional(),
+});
+
+export const measurementSchema = z.object({
+  date: z.string().optional(),
+  weight: z.coerce.number().min(20).max(400),
+  muscleMass: z.coerce.number().min(0).max(200).optional(),
+  bodyFat: z.coerce.number().min(0).max(70).optional(),
+  note: z.string().max(500).optional(),
+});
+
+export const checkinSchema = z.object({
+  mood: z.coerce.number().int().min(1).max(5),
+  energy: z.coerce.number().int().min(1).max(5),
+  sleepHours: z.coerce.number().min(0).max(24).optional(),
+  note: z.string().max(500).optional(),
+  trained: z.boolean().optional(),
+});
+
+export const socialPostSchema = z.object({
+  text: z.string().max(2000).optional(),
+  workoutId: z.string().uuid().optional(),
+  imageUrl: z.string().url().optional(),
+});
+
+export const socialCommentSchema = z.object({
+  text: z.string().min(1, 'Comentário vazio').max(1000, 'Comentário muito longo'),
+});
+
+export const friendRequestSchema = z.object({
+  addresseeId: z.string().uuid().optional(),
+  action: z.enum(['request', 'respond']).optional(),
+  friendshipId: z.string().uuid().optional(),
+});
+
+export const messageSchema = z.object({
+  receiverId: z.string().uuid(),
+  text: z.string().min(1, 'Mensagem vazia').max(2000, 'Mensagem muito longa'),
+});
+
+export const challengeJoinSchema = z.object({
+  challengeId: z.string().uuid(),
+});
+
+export const dietPlanSchema = z.object({
+  title: z.string().min(1).max(200),
+  description: z.string().max(1000).optional(),
+  dailyCalories: z.coerce.number().positive().optional(),
+  proteinGoal: z.coerce.number().positive().optional(),
+  carbsGoal: z.coerce.number().positive().optional(),
+  fatGoal: z.coerce.number().positive().optional(),
+  endDate: z.string().optional(),
+});
+
+export const foodSchema = z.object({
+  name: z.string().min(1).max(200),
+  brand: z.string().max(200).optional(),
+  servingSize: z.coerce.number().positive(),
+  servingUnit: z.string().min(1).max(50),
+  calories: z.coerce.number().min(0),
+  proteinG: z.coerce.number().min(0),
+  carbsG: z.coerce.number().min(0),
+  fatG: z.coerce.number().min(0),
+  fiberG: z.coerce.number().min(0).optional(),
+  sodiumMg: z.coerce.number().min(0).optional(),
+  category: z.string().min(1),
+});
+
+export const mealSchema = z.object({
+  date: z.string().optional(),
+  type: z.enum(['breakfast', 'lunch', 'dinner', 'snack']),
+  notes: z.string().max(500).optional(),
+});
+
+export const addFoodToMealSchema = z.object({
+  mealId: z.string().uuid(),
+  foodId: z.string().uuid(),
+  amount: z.coerce.number().positive().optional(),
+});
+
+export const goalSchema = z.object({
+  title: z.string().min(1).max(200),
+  description: z.string().max(1000).optional(),
+  category: z.string().min(1),
+  metric: z.string().min(1),
+  targetValue: z.coerce.number().positive(),
+  endDate: z.string().optional(),
+});
+
+export const goalUpdateSchema = z.object({
+  id: z.string().uuid(),
+  currentValue: z.coerce.number().min(0),
+});
+
+export const programSchema = z.object({
+  title: z.string().min(1).max(200),
+  description: z.string().max(1000).optional(),
+  category: z.string().min(1),
+  level: z.string().min(1),
+  durationWeeks: z.coerce.number().int().positive(),
+  daysPerWeek: z.coerce.number().int().min(1).max(7),
+  authorId: z.string().uuid().optional(),
+});
+
+export const appointmentBookSchema = z.object({
+  slotId: z.string().uuid(),
+  type: z.string().max(100).optional(),
+  notes: z.string().max(500).optional(),
+});
+
+export const appointmentActionSchema = z.object({
+  id: z.string().uuid(),
+  action: z.enum(['cancel', 'confirm']),
+});
+
+export const appointmentSlotSchema = z.object({
+  date: z.string(),
+  startTime: z.string().regex(/^\d{2}:\d{2}$/),
+  endTime: z.string().regex(/^\d{2}:\d{2}$/),
+});
+
+export const consentSchema = z.object({
+  termsAccepted: z.boolean().optional(),
+  privacyAccepted: z.boolean().optional(),
+  dataConsent: z.boolean().optional(),
 });
 
 export const chatResponseSchema = z.object({

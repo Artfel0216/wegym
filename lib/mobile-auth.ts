@@ -1,7 +1,7 @@
 import { SignJWT, jwtVerify } from 'jose';
 
 const ALG = 'HS256';
-const MOBILE_TOKEN_MAX_AGE = 60 * 60 * 24 * 30;
+const MOBILE_TOKEN_MAX_AGE = 60 * 60 * 24 * 7;
 
 function getKey(): Uint8Array {
   const secret = process.env.NEXTAUTH_SECRET;

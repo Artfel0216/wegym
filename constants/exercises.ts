@@ -1,41 +1,9 @@
 import { Exercise } from '@/types/training';
-
-const GIF_BASE = 'https://raw.githubusercontent.com/wrkout/exercises.json/master/exercises';
-
-const muscleGifDir: Record<string, string> = {
-  'Peito': 'chest',
-  'Costas': 'back',
-  'Ombros': 'shoulders',
-  'Bíceps': 'biceps',
-  'Tríceps': 'triceps',
-  'Antebraço': 'forearms',
-  'Pernas': 'legs',
-  'Glúteos': 'glutes',
-  'Core': 'core',
-  'Cardio': 'cardio',
-  'Corpo Todo': 'fullbody',
-  'Panturrilha': 'calves',
-};
-
-const slugify = (name: string) =>
-  name.toLowerCase()
-    .replace(/[\/,]/g, '')
-    .replace(/[\s-]+/g, '-')
-    .replace(/[áàâãä]/g, 'a')
-    .replace(/[éèêë]/g, 'e')
-    .replace(/[íìîï]/g, 'i')
-    .replace(/[óòôõö]/g, 'o')
-    .replace(/[úùûü]/g, 'u')
-    .replace(/[ç]/g, 'c')
-    .replace(/[^a-z0-9-]/g, '')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '');
+import { getExerciseGifUrl } from '@/lib/exercise-gif';
 
 const createExercise = (id: string, name: string, muscle: string, sets: number | string, reps: string, obs: string): Exercise => {
-  const muscleDir = muscleGifDir[muscle] ?? 'fullbody';
-  const slug = slugify(name);
-  const gifUrl = `${GIF_BASE}/${muscleDir}/${slug}/gif.gif`;
-  return { id, name, muscle, sets, reps, obs, gifUrl };
+  const gifUrl = getExerciseGifUrl(name, muscle);
+  return { id, name, muscle, sets, reps, obs, gifUrl: gifUrl ?? undefined };
 };
 
 export const ALL_AVAILABLE_EXERCISES: Exercise[] = [

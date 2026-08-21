@@ -27,21 +27,35 @@ export const nutritionService = {
   },
 
   async recalculateTotals(mealId: string) {
-    const foods = await prisma.mealFood.findMany({ where: { mealId }, include: { food: true } });
-    const totals = foods.reduce(
-      (acc, mf) => ({
-        calories: acc.calories + mf.food.calories * mf.amount,
-        proteinG: acc.proteinG + mf.food.proteinG * mf.amount,
-        carbsG: acc.carbsG + mf.food.carbsG * mf.amount,
-        fatG: acc.fatG + mf.food.fatG * mf.amount,
-        fiberG: acc.fiberG + (mf.food.fiberG ?? 0) * mf.amount,
-      }),
-      { calories: 0, proteinG: 0, carbsG: 0, fatG: 0, fiberG: 0 },
-    );
+    const result = await prisma.$queryRaw<[{ calories: number; protein_g: number; carbs_g: number; fat_g: number; fiber_g: number }]>`
+      SELECT
+        COALESCE(SUM(f.calories * mf.amount), 0) AS calories,
+        COALESCE(SUM(f."proteinG" * mf.amount), 0) AS protein_g,
+        COALESCE(SUM(f."carbsG" * mf.amount), 0) AS carbs_g,
+        COALESCE(SUM(f."fatG" * mf.amount), 0) AS fat_g,
+        COALESCE(SUM(COALESCE(f."fiberG", 0) * mf.amount), 0) AS fiber_g
+      FROM "MealFood" mf
+      JOIN "FoodItem" f ON f.id = mf."foodId"
+      WHERE mf."mealId" = ${mealId}
+    `;
+    const totals = result[0] ?? { calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0, fiber_g: 0 };
     return prisma.mealTotals.upsert({
       where: { mealId },
-      create: { mealId, ...totals },
-      update: totals,
+      create: {
+        mealId,
+        calories: Number(totals.calories),
+        proteinG: Number(totals.protein_g),
+        carbsG: Number(totals.carbs_g),
+        fatG: Number(totals.fat_g),
+        fiberG: Number(totals.fiber_g),
+      },
+      update: {
+        calories: Number(totals.calories),
+        proteinG: Number(totals.protein_g),
+        carbsG: Number(totals.carbs_g),
+        fatG: Number(totals.fat_g),
+        fiberG: Number(totals.fiber_g),
+      },
     });
   },
 

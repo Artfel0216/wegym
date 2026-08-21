@@ -1,35 +1,37 @@
 import { prisma } from '@/lib/prisma';
-import { NotFoundError } from '@/lib/errors';
+import { NotFoundError, ForbiddenError } from '@/lib/errors';
 
 export const trainingPlanService = {
   async upsert(athleteId: string, day: string, exercises: { name: string; sets: string; reps: string; load: string }[]) {
-    const existing = await prisma.trainingPlan.findFirst({
-      where: { athleteId, day: day as never },
-    });
+    return prisma.$transaction(async (tx) => {
+      const existing = await tx.trainingPlan.findFirst({
+        where: { athleteId, day: day as never },
+      });
 
-    if (existing) {
-      await prisma.exercise.deleteMany({ where: { planId: existing.id } });
-      await prisma.trainingPlan.update({
-        where: { id: existing.id },
+      if (existing) {
+        await tx.exercise.deleteMany({ where: { planId: existing.id } });
+        await tx.trainingPlan.update({
+          where: { id: existing.id },
+          data: {
+            exercises: {
+              createMany: { data: exercises },
+            },
+          },
+        });
+        return existing.id;
+      }
+
+      const plan = await tx.trainingPlan.create({
         data: {
+          athleteId,
+          day: day as never,
           exercises: {
             createMany: { data: exercises },
           },
         },
       });
-      return existing.id;
-    }
-
-    const plan = await prisma.trainingPlan.create({
-      data: {
-        athleteId,
-        day: day as never,
-        exercises: {
-          createMany: { data: exercises },
-        },
-      },
+      return plan.id;
     });
-    return plan.id;
   },
 
   async getByAthlete(athleteId: string) {
@@ -49,7 +51,12 @@ export const trainingPlanService = {
     return plan;
   },
 
-  async delete(id: string) {
+  async delete(id: string, userId?: string) {
+    if (userId) {
+      const plan = await prisma.trainingPlan.findUnique({ where: { id }, select: { athleteId: true } });
+      if (!plan) throw new NotFoundError('Plano de treino não encontrado');
+      if (plan.athleteId !== userId) throw new ForbiddenError('Sem permissão para excluir este plano');
+    }
     await prisma.trainingPlan.delete({ where: { id } });
   },
 

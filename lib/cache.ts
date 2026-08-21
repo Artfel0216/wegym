@@ -1,44 +1,23 @@
-import { logger } from './logger';
+import { getRedis } from './redis';
 
 type StoreEntry = { data: unknown; expiresAt: number };
-
-const redisUrl = () => process.env.REDIS_URL;
 
 function prefix(key: string) {
   if (process.env.NODE_ENV === 'production') return `wegym:${key}`;
   return `wegym:dev:${key}`;
 }
 
-let redisClient: Awaited<ReturnType<typeof createRedisClient>> | null = null;
-let redisFailed = false;
-
-async function createRedisClient() {
-  const { createClient } = await import('redis');
-  const client = createClient({
-    url: redisUrl(),
-    socket: { reconnectStrategy: false },
-  });
-  await client.connect();
-  return client;
-}
-
-async function getRedis() {
-  if (redisFailed || !redisUrl()) return null;
-  if (redisClient?.isOpen) return redisClient;
-  try {
-    redisClient = await createRedisClient();
-    redisFailed = false;
-    return redisClient;
-  } catch (err) {
-    logger.warn({ err }, '[Cache] Redis unavailable, using in-memory fallback');
-    try { redisClient?.quit(); } catch { /* ignore */ }
-    redisClient = null;
-    redisFailed = true;
-    return null;
-  }
-}
-
 const memStore = new Map<string, StoreEntry>();
+
+const CACHE_CLEANUP_INTERVAL_MS = 60_000;
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, entry] of memStore) {
+    if (now > entry.expiresAt) {
+      memStore.delete(key);
+    }
+  }
+}, CACHE_CLEANUP_INTERVAL_MS).unref();
 
 async function memGet<T>(key: string): Promise<T | null> {
   const entry = memStore.get(prefix(key));
@@ -98,8 +77,12 @@ export const cache = {
     const redis = await getRedis();
     if (redis) {
       try {
-        const keys = await redis.keys(`${prefixed}*`);
-        if (keys.length > 0) await redis.del(keys);
+        let cursor = 0;
+        do {
+          const result = await redis.scan(cursor, { MATCH: `${prefixed}*`, COUNT: 100 });
+          cursor = result.cursor;
+          if (result.keys.length > 0) await redis.del(result.keys);
+        } while (cursor !== 0);
         return;
       } catch { /* fall through */ }
     }

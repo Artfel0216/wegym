@@ -1,4 +1,4 @@
-import { authenticate, handleError, json, created } from '@/lib/api-utils';
+import { authenticate, handleError, json, created, withRateLimit } from '@/lib/api-utils';
 import { trainingPlanService } from '@/lib/services/training-plan.service';
 import { z } from 'zod';
 
@@ -17,7 +17,10 @@ const upsertSchema = z.object({
 
 export async function POST(request: Request) {
   try {
-    await authenticate();
+    const session = await authenticate();
+    const rateLimitResponse = await withRateLimit(request, `training-plans:${session.user.id}`);
+    if (rateLimitResponse) return rateLimitResponse;
+
     const body = await request.json();
     const parsed = upsertSchema.parse(body);
     const id = await trainingPlanService.upsert(parsed.athleteId, parsed.day, parsed.exercises);
@@ -29,11 +32,15 @@ export async function POST(request: Request) {
 
 export async function GET(request: Request) {
   try {
-    await authenticate();
+    const session = await authenticate();
     const { searchParams } = new URL(request.url);
     const athleteId = searchParams.get('athleteId');
     if (!athleteId) {
       return json({ error: 'athleteId é obrigatório' }, 400);
+    }
+    const role = (session.user as { role?: string }).role;
+    if (role === 'athlete' && session.user.id !== athleteId) {
+      return json({ error: 'Acesso negado' }, 403);
     }
     const plans = await trainingPlanService.getByAthlete(athleteId);
     return json({ data: plans });

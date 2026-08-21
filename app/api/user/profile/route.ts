@@ -1,5 +1,5 @@
 import { userService } from '@/lib/services/user.service';
-import { authenticate, handleError, json, cache } from '@/lib/api-utils';
+import { authenticate, handleError, json, cache, withRateLimit } from '@/lib/api-utils';
 import { profileUpdateSchema } from '@/lib/validation';
 import { ValidationError } from '@/lib/errors';
 
@@ -25,6 +25,8 @@ export async function GET() {
 export async function PATCH(req: Request) {
   try {
     const session = await authenticate();
+    const rateLimitResponse = await withRateLimit(req, `profile:${session.user.id}`);
+    if (rateLimitResponse) return rateLimitResponse;
 
     const body = await req.json();
     const parsed = profileUpdateSchema.safeParse(body);

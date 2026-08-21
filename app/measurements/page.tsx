@@ -2,7 +2,8 @@
 export const dynamic = 'force-dynamic';
 import React, { useCallback, useEffect, useState } from "react";
 import { AuthGuard } from "@/components/auth/AuthGuard";
-import { LineChart, Plus, Loader2, Weight, Activity, Droplets } from "lucide-react";
+import { Plus, Loader2, Weight, Activity, Droplets, LineChart } from "lucide-react";
+import { toast } from "sonner";
 
 export default function MeasurementsPage() {
   const [entries, setEntries] = useState<any[]>([]);
@@ -11,6 +12,7 @@ export default function MeasurementsPage() {
   const [form, setForm] = useState({ weight: "", muscleMass: "", bodyFat: "", note: "" });
   const [chartMetric, setChartMetric] = useState<string | null>(null);
   const [chartData, setChartData] = useState<any[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
 
   const load = useCallback(async () => {
     try { const r = await fetch("/api/body-measurements", { credentials: "include" }); if (r.ok) setEntries(await r.json()); } finally { setLoading(false); }
@@ -25,8 +27,16 @@ export default function MeasurementsPage() {
   };
 
   const save = async () => {
-    await fetch("/api/body-measurements", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ weight: Number(form.weight), muscleMass: form.muscleMass ? Number(form.muscleMass) : undefined, bodyFat: form.bodyFat ? Number(form.bodyFat) : undefined, note: form.note }) });
-    setShowForm(false); setForm({ weight: "", muscleMass: "", bodyFat: "", note: "" }); load();
+    setIsSaving(true);
+    try {
+      const res = await fetch("/api/body-measurements", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ weight: Number(form.weight), muscleMass: form.muscleMass ? Number(form.muscleMass) : undefined, bodyFat: form.bodyFat ? Number(form.bodyFat) : undefined, note: form.note }) });
+      if (!res.ok) throw new Error("Erro ao salvar");
+      setShowForm(false); setForm({ weight: "", muscleMass: "", bodyFat: "", note: "" }); load();
+    } catch {
+      toast.error("Erro ao salvar medição. Tente novamente.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const METRICS = [
@@ -49,7 +59,9 @@ export default function MeasurementsPage() {
               <input type="number" value={form.muscleMass} onChange={(e) => setForm({ ...form, muscleMass: e.target.value })} placeholder="Massa muscular (kg, opcional)" step="0.1" className="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-3 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-orange-500" />
               <input type="number" value={form.bodyFat} onChange={(e) => setForm({ ...form, bodyFat: e.target.value })} placeholder="% gordura (opcional)" step="0.1" className="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-3 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-orange-500" />
               <textarea value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} placeholder="Observação" rows={2} className="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-3 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-orange-500" />
-              <button onClick={save} disabled={!form.weight} className="w-full py-3 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-xs font-black uppercase italic cursor-pointer disabled:opacity-50">Salvar</button>
+              <button onClick={save} disabled={!form.weight || isSaving} className="w-full py-3 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-xs font-black uppercase italic cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2">
+                {isSaving ? <Loader2 size={14} className="animate-spin" /> : "Salvar"}
+              </button>
             </div>
           )}
 
@@ -88,7 +100,18 @@ export default function MeasurementsPage() {
             </div>
           )}
 
-          {loading ? <div className="flex justify-center pt-8"><Loader2 size={24} className="animate-spin text-orange-500" /></div> : entries.map((e: any) => (
+          {loading ? (
+            <div className="flex justify-center pt-8"><Loader2 size={24} className="animate-spin text-orange-500" /></div>
+          ) : entries.length === 0 ? (
+            <div className="bg-zinc-900/30 rounded-4xl border border-white/5 text-center py-16 px-6">
+              <LineChart size={40} className="mx-auto text-zinc-600 mb-4" />
+              <p className="text-zinc-400 text-sm font-medium">Nenhuma medição registrada</p>
+              <p className="text-zinc-600 text-xs mt-1 mb-4">Adicione sua primeira medição para acompanhar sua evolução.</p>
+              <button onClick={() => setShowForm(true)} className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase italic cursor-pointer transition-colors inline-flex items-center gap-1.5">
+                <Plus size={14} /> Adicionar medição
+              </button>
+            </div>
+          ) : entries.map((e: any) => (
             <div key={e.id} className="bg-zinc-900/40 border border-white/5 rounded-3xl p-4 flex items-center justify-between">
               <div>
                 <p className="text-sm font-bold text-white">{e.weight} kg</p>

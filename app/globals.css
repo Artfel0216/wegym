@@ -84,3 +84,36 @@ body {
 @utility btn-fab {
   @apply cursor-pointer hover:scale-105 transition-all;
 }
+
+:focus-visible {
+  outline: 2px solid #ea580c;
+  outline-offset: 2px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local(), url('/fonts/inter.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Geomancy';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local(), url('/fonts/geomancy.woff2') format('woff2');
+}

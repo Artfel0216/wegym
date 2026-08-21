@@ -1,5 +1,5 @@
 const CACHE = "wegym-v4";
-const PRECACHE_URLS = ["/", "/offline"];
+const PRECACHE_URLS = ["/", "/offline", "/home", "/personal", "/training", "/profile", "/stats", "/goals", "/achievements", "/programs", "/checkin", "/nutrition", "/measurements"];
 
 const STATIC_CACHE = "wegym-static";
 const API_CACHE = "wegym-api";
@@ -15,8 +15,22 @@ self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE)
       .then((cache) => cache.addAll(PRECACHE_URLS))
-      .then(() => self.skipWaiting()),
+      .then(() => self.skipWaiting())
   );
+  // Register background sync for offline data
+  if (!IS_DEV) {
+    event.waitUntil(registration.sync.register("sync-offline-data"));
+  }
+});
+
+self.addEventListener("sync", (event) => {
+  if (IS_DEV) {
+    event.ignoreResources = ["*"];
+    return;
+  }
+  if (event.tag === "sync-offline-data") {
+    event.waitUntil(syncOfflineData());
+  }
 });
 
 self.addEventListener("activate", (event) => {
@@ -41,6 +55,21 @@ self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
 
   const { pathname } = new URL(event.request.url);
+
+  // Queue POST/PUT/DELETE requests when offline
+  if (event.request.method !== "GET") {
+    event.respondWith(
+      fetch(event.request)
+        .catch(() => {
+          // Queue the request for sync
+          const queued = JSON.parse(localStorage.getItem("wegym-queued") || "[]");
+          queued.push({ url: event.request.url, method: event.request.method, body: event.request.body });
+          localStorage.setItem("wegym-queued", JSON.stringify(queued));
+          throw new Error("Offline");
+        })
+    );
+    return;
+  }
 
   if (pathname.startsWith("/_next/static/") || pathname.startsWith("/static/")) {
     event.respondWith(staticStrategy(event.request));
@@ -124,4 +153,19 @@ async function apiFirst(request) {
     clearTimeout(timeoutId);
     return cached;
   }
+}
+
+async function syncOfflineData() {
+  const queued = JSON.parse(localStorage.getItem("wegym-queued") || "[]");
+  for (const request of queued) {
+    try {
+      const response = await fetch(request.url, { method: request.method, body: request.body });
+      if (response.ok) {
+        queued.splice(queued.indexOf(request), 1);
+      }
+    } catch {
+      // Keep queued for next sync cycle
+    }
+  }
+  localStorage.setItem("wegym-queued", JSON.stringify(queued));
 }

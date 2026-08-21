@@ -1,4 +1,4 @@
-import { authenticate, handleError, created } from '@/lib/api-utils';
+import { authenticate, handleError, created, withRateLimit } from '@/lib/api-utils';
 import { workoutSessionService } from '@/lib/services/workout-session.service';
 import { z } from 'zod';
 
@@ -18,6 +18,9 @@ const createSchema = z.object({
 export async function POST(request: Request) {
   try {
     const session = await authenticate();
+    const rateLimitResponse = await withRateLimit(request, `workout-sessions:${session.user.id}`);
+    if (rateLimitResponse) return rateLimitResponse;
+
     const body = await request.json();
     const parsed = createSchema.parse(body);
 

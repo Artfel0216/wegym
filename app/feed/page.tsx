@@ -1,22 +1,36 @@
 "use client";
-export const dynamic = 'force-dynamic';
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState, lazy, Suspense } from "react";
 import { useTranslations } from "@/lib/i18n/hook";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { Heart, MessageCircle, Loader2, Send } from "lucide-react";
+import { useSession } from "next-auth/react";
+
+const LazyHeart = lazy(() => import("lucide-react").then(m => m.Heart));
+const LazyLoader2 = lazy(() => import("lucide-react").then(m => m.Loader2));
 
 type Post = { id: string; text?: string; createdAt: string; user: { displayName: string; avatarUrl?: string }; _count: { likes: number; comments: number }; likes: { userId: string }[]; comments: { id: string; text: string; userId: string; user: { displayName: string } }[] };
 
 export default function FeedPage() {
   const { t } = useTranslations();
+  const { data: session } = useSession();
+  const currentUserId = session?.user?.id;
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [newPost, setNewPost] = useState("");
+  const [csrfToken, setCsrfToken] = useState<string>("");
 
   const load = useCallback(async () => {
     try { const r = await fetch("/api/social?feed=friends", { credentials: "include" }); if (r.ok) setPosts(await r.json()); } finally { setLoading(false); }
   }, []);
 
+  useEffect(() => {
+    const getCsrfToken = async () => {
+      const res = await fetch('/api/csrf', { credentials: 'include' });
+      const data = await res.json();
+      setCsrfToken(data.csrfToken || '');
+    };
+    getCsrfToken();
+  }, []);
   useEffect(() => { load(); }, [load]);
 
   const createPost = async () => {
@@ -26,8 +40,13 @@ export default function FeedPage() {
   };
 
   const toggleLike = async (postId: string) => {
-    await fetch(`/api/social/${postId}/like`, { method: "POST", credentials: "include" });
-    load();
+    const res = await fetch(`/api/social/${postId}/like`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "X-CSRF-TOKEN": csrfToken }
+    });
+    const data = await res.json();
+    if (data.liked) load();
   };
 
   return (
@@ -49,8 +68,8 @@ export default function FeedPage() {
               </div>
               {post.text && <p className="text-sm text-zinc-300 mb-4">{post.text}</p>}
               <div className="flex items-center gap-4 text-xs text-zinc-500">
-                <button onClick={() => toggleLike(post.id)} className={`flex items-center gap-1 cursor-pointer transition-colors ${post.likes.some((l) => false) ? "text-rose-500" : "hover:text-rose-400"}`}>
-                  <Heart size={14} className={post.likes.length > 0 ? "fill-rose-500 text-rose-500" : ""} /> {post._count.likes}
+                <button onClick={() => toggleLike(post.id)} className={`flex items-center gap-1 cursor-pointer transition-colors ${post.likes.some((l) => l.userId === currentUserId) ? "text-rose-500" : "hover:text-rose-400"}`} aria-label={post.likes.some((l) => l.userId === currentUserId) ? t("feed.unlike") : t("feed.like")}>
+                  <LazyHeart size={14} className={post.likes.some((l) => l.userId === currentUserId) ? "fill-rose-500 text-rose-500" : ""} /> {post._count.likes}
                 </button>
                 <span className="flex items-center gap-1"><MessageCircle size={14} /> {post._count.comments}</span>
               </div>

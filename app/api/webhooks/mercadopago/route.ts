@@ -18,7 +18,8 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'invalid signature' }, { status: 401 });
       }
     } else if (process.env.NODE_ENV === 'production') {
-      logger.warn('[Webhook] MP_WEBHOOK_SECRET não configurado — risco de segurança');
+      logger.error('[Webhook] MP_WEBHOOK_SECRET não configurado em produção — recusando webhook');
+      return NextResponse.json({ error: 'Webhook secret not configured' }, { status: 500 });
     }
 
     const body = await request.json();

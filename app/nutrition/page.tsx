@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "@/lib/i18n/hook";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { Apple, Loader2, Search, Plus, Coffee, UtensilsCrossed, Moon, Cookie } from "lucide-react";
+import { toast } from "sonner";
 
 const MEAL_TYPES = ["breakfast", "lunch", "dinner", "snack"];
 const MEAL_ICONS: Record<string, React.ComponentType<{ size?: number; className?: string }>> = { breakfast: Coffee, lunch: UtensilsCrossed, dinner: Moon, snack: Cookie };
@@ -15,29 +16,48 @@ export default function NutritionPage() {
   const [foods, setFoods] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
       const [mealsRes, foodsRes] = await Promise.all([
         fetch(`/api/nutrition/meals?date=${date}`, { credentials: "include" }),
-        fetch(`/api/nutrition/foods?q=${search}`, { credentials: "include" }),
+        fetch(`/api/nutrition/foods?q=${debouncedSearch}`, { credentials: "include" }),
       ]);
       if (mealsRes.ok) setMeals(await mealsRes.json());
       if (foodsRes.ok) setFoods(await foodsRes.json());
     } finally { setLoading(false); }
-  }, [date, search]);
+  }, [date, debouncedSearch]);
 
   useEffect(() => { load(); }, [load]);
 
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(timer);
+  }, [search]);
+
   const createMeal = async (type: string) => {
-    const r = await fetch("/api/nutrition/meals", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ date, type }) });
-    if (r.ok) load();
+    setIsSaving(true);
+    try {
+      const res = await fetch("/api/nutrition/meals", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ date, type }) });
+      if (res.ok) load();
+    } catch {
+      toast.error("Erro ao criar refeição. Tente novamente.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const addFood = async (mealId: string, foodId: string) => {
-    await fetch("/api/nutrition/meals", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mealId, foodId, amount: 1 }) });
-    load();
+    try {
+      const res = await fetch("/api/nutrition/meals", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mealId, foodId, amount: 1 }) });
+      if (!res.ok) throw new Error("Erro ao adicionar alimento");
+      load();
+    } catch {
+      toast.error("Erro ao adicionar alimento. Tente novamente.");
+    }
   };
 
   const totals = meals.reduce((acc, m) => ({ calories: acc.calories + (m.totals?.calories ?? 0), protein: acc.protein + (m.totals?.proteinG ?? 0), carbs: acc.carbs + (m.totals?.carbsG ?? 0), fat: acc.fat + (m.totals?.fatG ?? 0) }), { calories: 0, protein: 0, carbs: 0, fat: 0 });
@@ -58,14 +78,20 @@ export default function NutritionPage() {
             ))}
           </div>
 
-          {loading ? <div className="flex justify-center pt-8"><Loader2 size={24} className="animate-spin text-orange-500" /></div> : MEAL_TYPES.map((type) => {
+          {loading ? <div className="flex justify-center pt-8"><Loader2 size={24} className="animate-spin text-orange-500" /></div> : meals.length === 0 ? (
+            <div className="bg-zinc-900/30 rounded-4xl border border-white/5 text-center py-16 px-6">
+              <Apple size={40} className="mx-auto text-zinc-600 mb-4" />
+              <p className="text-zinc-400 text-sm font-medium">Nenhuma refeição registrada</p>
+              <p className="text-zinc-600 text-xs mt-1">Crie uma refeição acima para começar a registrar sua alimentação.</p>
+            </div>
+          ) : MEAL_TYPES.map((type) => {
             const Icon = MEAL_ICONS[type] || Apple;
             const meal = meals.find((m) => m.type === type);
             return (
               <div key={type} className="bg-zinc-900/40 border border-white/5 rounded-4xl p-5">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2"><Icon size={16} className="text-orange-500" /><p className="text-xs font-black italic uppercase text-white">{t(`nutrition.${type}`)}</p></div>
-                  {!meal && <button onClick={() => createMeal(type)} className="text-[10px] text-orange-500 font-black uppercase italic cursor-pointer flex items-center gap-1"><Plus size={12} /> {t("nutrition.addFood")}</button>}
+                  {!meal && <button onClick={() => createMeal(type)} disabled={isSaving} className="text-[10px] text-orange-500 font-black uppercase italic cursor-pointer flex items-center gap-1 disabled:opacity-50"><Plus size={12} /> {t("nutrition.addFood")}</button>}
                 </div>
                 {meal && (
                   <div className="space-y-2">

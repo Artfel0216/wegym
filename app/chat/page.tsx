@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "@/lib/i18n/hook";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { Send, MessageSquare, Loader2, User } from "lucide-react";
+import { toast } from "sonner";
 
 export default function ChatPage() {
   const { t } = useTranslations();
@@ -12,6 +13,7 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<any[]>([]);
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(true);
+  const [isSending, setIsSending] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const loadConversations = useCallback(async () => {
@@ -29,9 +31,17 @@ export default function ChatPage() {
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
   const send = async () => {
-    if (!text.trim() || !activeUser) return;
-    await fetch("/api/messages", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ receiverId: activeUser, text }) });
-    setText(""); loadMessages(activeUser);
+    if (!text.trim() || !activeUser || isSending) return;
+    setIsSending(true);
+    try {
+      const res = await fetch("/api/messages", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ receiverId: activeUser, text }) });
+      if (!res.ok) throw new Error("Erro ao enviar");
+      setText(""); loadMessages(activeUser);
+    } catch {
+      toast.error("Erro ao enviar mensagem. Tente novamente.");
+    } finally {
+      setIsSending(false);
+    }
   };
 
   const contactList = [...new Map<string, any>([...conversations.sent.map((c: any) => [c.receiver.id, c.receiver] as [string, any]), ...conversations.received.map((c: any) => [c.sender.id, c.sender] as [string, any])]).values()];
@@ -67,7 +77,7 @@ export default function ChatPage() {
                 </div>
                 <div className="border-t border-white/5 p-3 flex gap-2">
                   <input value={text} onChange={(e) => setText(e.target.value)} onKeyDown={(e) => e.key === "Enter" && send()} placeholder={t("chat.inputPlaceholder")} className="flex-1 bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-orange-500" />
-                  <button onClick={send} disabled={!text.trim()} className="bg-orange-600 hover:bg-orange-700 disabled:bg-zinc-700 text-white p-2.5 rounded-xl cursor-pointer transition-colors disabled:cursor-not-allowed"><Send size={16} /></button>
+                  <button onClick={send} disabled={!text.trim() || isSending} className="bg-orange-600 hover:bg-orange-700 disabled:bg-zinc-700 text-white p-2.5 rounded-xl cursor-pointer transition-colors disabled:cursor-not-allowed flex items-center justify-center">{isSending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}</button>
                 </div>
               </>
             ) : (

@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import { ConflictError, ValidationError, NotFoundError } from '@/lib/errors';
 import { validateCref } from '@/lib/cref';
 import type { RegisterInput } from '@/lib/validation';
+import { cache } from '@/lib/cache';
 
 export const userService = {
   async register(data: RegisterInput) {
@@ -83,59 +84,61 @@ export const userService = {
   },
 
   async getProfile(userId: string) {
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        id: true,
-        email: true,
-        role: true,
-        createdAt: true,
-        athlete: {
-          select: {
-            id: true,
-            name: true,
-            city: true,
-            state: true,
-            age: true,
-            heightCm: true,
-            weightKg: true,
-            sex: true,
-            experienceLevel: true,
+    return cache.getOrSet(`profile:${userId}`, async () => {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          id: true,
+          email: true,
+          role: true,
+          createdAt: true,
+          athlete: {
+            select: {
+              id: true,
+              name: true,
+              city: true,
+              state: true,
+              age: true,
+              heightCm: true,
+              weightKg: true,
+              sex: true,
+              experienceLevel: true,
+            },
+          },
+          personal: {
+            select: { id: true, name: true, cref: true },
           },
         },
-        personal: {
-          select: { id: true, name: true, cref: true },
-        },
-      },
-    });
-    if (!user) throw new NotFoundError('Usuário');
+      });
+      if (!user) throw new NotFoundError('Usuário');
 
-    const avatarName = user.athlete?.name ?? user.personal?.name ?? 'Wegym';
-    const avatarPlaceholder = `https://ui-avatars.com/api/?name=${encodeURIComponent(avatarName)}&background=ea580c&color=fff&size=256&bold=true`;
+      const avatarName = user.athlete?.name ?? user.personal?.name ?? 'Wegym';
+      const avatarPlaceholder = `https://ui-avatars.com/api/?name=${encodeURIComponent(avatarName)}&background=ea580c&color=fff&size=256&bold=true`;
 
-    return {
-      id: user.id,
-      email: user.email,
-      role: user.role,
-      createdAt: user.createdAt.toISOString(),
-      athlete: user.athlete
-        ? {
-            id: user.athlete.id,
-            name: user.athlete.name,
-            city: user.athlete.city,
-            state: user.athlete.state,
-            age: user.athlete.age,
-            heightCm: user.athlete.heightCm,
-            weightKg: user.athlete.weightKg,
-            sex: user.athlete.sex,
-            experienceLevel: user.athlete.experienceLevel,
-          }
-        : null,
-      personal: user.personal
-        ? { id: user.personal.id, name: user.personal.name, cref: user.personal.cref }
-        : null,
-      avatarPlaceholder,
-    };
+      return {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        createdAt: user.createdAt.toISOString(),
+        athlete: user.athlete
+          ? {
+              id: user.athlete.id,
+              name: user.athlete.name,
+              city: user.athlete.city,
+              state: user.athlete.state,
+              age: user.athlete.age,
+              heightCm: user.athlete.heightCm,
+              weightKg: user.athlete.weightKg,
+              sex: user.athlete.sex,
+              experienceLevel: user.athlete.experienceLevel,
+            }
+          : null,
+        personal: user.personal
+          ? { id: user.personal.id, name: user.personal.name, cref: user.personal.cref }
+          : null,
+        avatarPlaceholder,
+      };
+    }, 60);
   },
 
   async updateProfile(userId: string, data: { name?: string; weightKg?: number; heightCm?: number }) {
@@ -170,6 +173,7 @@ export const userService = {
       }
     }
 
+    await cache.del(`profile:${userId}`);
     return { message: 'Perfil atualizado' };
   },
 

@@ -28,7 +28,13 @@
     "myStudents": "Mis Alumnos",
     "addStudent": "Agregar Alumno",
     "openMenu": "Abrir menú lateral",
-    "closeMenu": "Cerrar menú"
+    "closeMenu": "Cerrar menú",
+    "mainMenu": "Menú principal",
+    "feed": "Feed",
+    "goals": "Metas",
+    "programs": "Programas",
+    "achievements": "Logros",
+    "checkin": "Check-in"
   },
   "login": {
     "title": "INICIAR SESIÓN",

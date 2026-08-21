@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { athleteService } from '@/lib/services/athlete.service';
-import { requireRole, handleError, cache } from '@/lib/api-utils';
+import { requireRole, handleError, cache, withRateLimit } from '@/lib/api-utils';
 import { athleteRegisterSchema } from '@/lib/validation';
 import { ValidationError } from '@/lib/errors';
 
@@ -9,6 +9,8 @@ export const runtime = 'nodejs';
 export async function POST(req: Request) {
   try {
     const session = await requireRole(['personal']);
+    const rateLimitResponse = await withRateLimit(req, `athlete-register:${session.user.id}`);
+    if (rateLimitResponse) return rateLimitResponse;
 
     const body = await req.json();
     const parsed = athleteRegisterSchema.safeParse(body);

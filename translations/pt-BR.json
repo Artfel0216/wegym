@@ -17,6 +17,7 @@
     "dash": " —",
     "yes": "Sim",
     "no": "Não",
+    "back": "Voltar",
     "saved": "Salvo!"
   },
   "error": {
@@ -45,6 +46,9 @@
     "emailPlaceholder": "seu@email.com",
     "passwordLabel": "Senha",
     "forgotPassword": "Esqueci minha senha",
+    "forgotPasswordDescription": "Informe seu e-mail para receber o link de redefinição de senha.",
+    "forgotPasswordSuccess": "E-mail enviado! Verifique sua caixa de entrada.",
+    "sendResetLink": "Enviar link de redefinição",
     "signIn": "Entrar no Wegym",
     "noAccount": "Não tem conta? ",
     "doLogin": "FAZER LOGIN",
@@ -259,6 +263,7 @@
     "chatPlaceholder": "Gere o treino do Carlos...",
     "addExercises": "+ ADICIONAR EXERCÍCIOS",
     "deleteStudent": "Excluir aluno",
+    "confirmDeleteStudent": "Tem certeza que deseja excluir este aluno? Esta ação não pode ser desfeita.",
     "weekDay": "Dia da semana",
     "exercise": "Exercício",
     "sets": "Séries",
@@ -493,7 +498,13 @@
     "privacy": "Privacidade",
     "logout": "Sair da Conta",
     "openMenu": "Abrir menu lateral",
-    "modalitiesLabel": "Modalidades de treino"
+    "modalitiesLabel": "Modalidades de treino",
+    "mainMenu": "Menu principal",
+    "feed": "Feed",
+    "goals": "Metas",
+    "programs": "Programas",
+    "achievements": "Conquistas",
+    "checkin": "Check-in"
   },
   "consent": {
     "title": "Privacidade e Cookies",
@@ -709,6 +720,7 @@
     "placeholder": "O que você está compartilhando?",
     "post": "Publicar",
     "like": "Curtir",
+    "unlike": "Descurtir",
     "comment": "Comentar",
     "noPosts": "Nenhuma publicação ainda"
   },
@@ -828,5 +840,25 @@
       "step4Title": "Evolução",
       "step4Desc": "Regstre medidas, peso e observações para acompanhar a evolução dos seus alunos ao longo do tempo."
     }
+  },
+  "terms": {
+    "title": "Termos de Uso",
+    "lastUpdated": "Última atualização: Janeiro de 2025",
+    "acceptanceTitle": "Aceitação dos Termos",
+    "acceptance": "Ao acessar e utilizar a plataforma WEGYM, você concorda com estes Termos de Uso. Se não concordar com algum dos termos, não utilize o serviço.",
+    "serviceTitle": "Descrição do Serviço",
+    "service": "A WEGYM é uma plataforma digital que oferece ferramentas de gestão de treinos, acompanhamento de evolução física, integração com dispositivos de wearable e comunicação entre atletas e personal trainers.",
+    "accountTitle": "Conta de Usuário",
+    "account": "Você é responsável por manter a confidencialidade de sua senha e por todas as atividades que ocorrem em sua conta. Você concorda em notificar imediatamente qualquer uso não autorizado de sua conta.",
+    "userResponsibilitiesTitle": "Responsabilidades do Usuário",
+    "userResponsibilities": "O usuário se compromete a: (a) fornecer informações verdadeiras e atualizadas; (b) não utilizar o serviço para fins ilegais ou não autorizados; (c) não interferir no funcionamento do serviço; (d) respeitar os direitos de outros usuários.",
+    "intellectualPropertyTitle": "Propriedade Intelectual",
+    "intellectualProperty": "Todo o conteúdo, marcas, logotipos e materiais disponibilizados na plataforma WEGYM são de propriedade exclusiva da empresa e são protegidos pelas leis de propriedade intelectual.",
+    "limitationTitle": "Limitação de Responsabilidade",
+    "limitation": "A WEGYM não se responsabiliza por danos diretos, indiretos, incidentais ou consequenciais decorrentes do uso da plataforma. O serviço é fornecido 'como está', sem garantias de qualquer tipo.",
+    "changesTitle": "Alterações nos Termos",
+    "changes": "A WEGYM reserva-se o direito de alterar estes Termos a qualquer momento. As alterações serão publicadas na plataforma e o uso continuado do serviço após as alterações constitui aceitação dos novos termos.",
+    "contactTitle": "Contato",
+    "contact": "Em caso de dúvidas sobre estes Termos de Uso, entre em contato conosco através do e-mail: suporte@wegym.app"
   }
 }

@@ -1,5 +1,7 @@
-import { authenticate, handleError, json, created } from '@/lib/api-utils';
+import { authenticate, handleError, json, created, withRateLimit } from '@/lib/api-utils';
 import { programService } from '@/lib/services/program.service';
+import { programSchema } from '@/lib/validation';
+import { ValidationError } from '@/lib/errors';
 
 export const runtime = 'nodejs';
 
@@ -21,8 +23,14 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     await authenticate();
+    const rateLimitResponse = await withRateLimit(request, 'programs');
+    if (rateLimitResponse) return rateLimitResponse;
+
     const body = await request.json();
-    const program = await programService.create(body);
+    const parsed = programSchema.safeParse(body);
+    if (!parsed.success) throw new ValidationError('Programa inválido', parsed.error.issues);
+
+    const program = await programService.create(parsed.data);
     return created(program);
   } catch (error) { return handleError(error); }
 }

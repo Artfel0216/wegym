@@ -2,7 +2,6 @@
 
 import React, { useRef, useState } from 'react';
 import type { GpsSnapshot } from '@/hooks/use-gps-tracker';
-import html2canvas from 'html2canvas';
 import RouteMap from './RouteMap';
 
 interface GpsSessionResultProps {
@@ -61,6 +60,8 @@ export default function GpsSessionResult({ snapshot, targetTimes, selectedTarget
     try {
       const card = cardRef.current;
       if (!card) return;
+      const html2canvasModule = await import('html2canvas');
+      const html2canvas = html2canvasModule.default;
       const canvas = await html2canvas(card, {
         scale: 2,
         backgroundColor: '#09090b',

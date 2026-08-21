@@ -1,5 +1,7 @@
-import { authenticate, handleError, json, created } from '@/lib/api-utils';
+import { authenticate, handleError, json, created, withRateLimit } from '@/lib/api-utils';
 import { goalService } from '@/lib/services/goal.service';
+import { goalSchema, goalUpdateSchema } from '@/lib/validation';
+import { ValidationError } from '@/lib/errors';
 
 export const runtime = 'nodejs';
 
@@ -16,8 +18,18 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const session = await authenticate();
+    const rateLimitResponse = await withRateLimit(request, `goals:${session.user.id}`);
+    if (rateLimitResponse) return rateLimitResponse;
+
     const body = await request.json();
-    const goal = await goalService.create({ userId: session.user.id, ...body });
+    const parsed = goalSchema.safeParse(body);
+    if (!parsed.success) throw new ValidationError('Meta inválida', parsed.error.issues);
+
+    const goal = await goalService.create({
+      userId: session.user.id,
+      ...parsed.data,
+      endDate: parsed.data.endDate ? new Date(parsed.data.endDate) : new Date(),
+    });
     return created(goal);
   } catch (error) { return handleError(error); }
 }
@@ -25,8 +37,11 @@ export async function POST(request: Request) {
 export async function PATCH(request: Request) {
   try {
     const session = await authenticate();
-    const { id, currentValue } = await request.json();
-    const goal = await goalService.updateProgress(id, session.user.id, currentValue);
+    const body = await request.json();
+    const parsed = goalUpdateSchema.safeParse(body);
+    if (!parsed.success) throw new ValidationError('Dados inválidos', parsed.error.issues);
+
+    const goal = await goalService.updateProgress(parsed.data.id, session.user.id, parsed.data.currentValue);
     return json(goal);
   } catch (error) { return handleError(error); }
 }
@@ -34,8 +49,9 @@ export async function PATCH(request: Request) {
 export async function DELETE(request: Request) {
   try {
     const session = await authenticate();
-    const { id } = await request.json();
-    await goalService.remove(id, session.user.id);
+    const body = await request.json();
+    if (!body.id) return json({ error: 'ID obrigatório' }, 400);
+    await goalService.remove(body.id, session.user.id);
     return json({ success: true });
   } catch (error) { return handleError(error); }
 }

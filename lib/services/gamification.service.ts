@@ -1,8 +1,11 @@
 import { prisma } from '@/lib/prisma';
+import { cache } from '@/lib/cache';
 
 export const gamificationService = {
   async getAchievements() {
-    return prisma.achievement.findMany({ orderBy: { xpReward: 'asc' } });
+    return cache.getOrSet('achievements:all', async () => {
+      return prisma.achievement.findMany({ orderBy: { xpReward: 'asc' } });
+    }, 300);
   },
 
   async getUserAchievements(userId: string) {
@@ -14,16 +17,20 @@ export const gamificationService = {
   },
 
   async checkAndAward(userId: string, event: { type: string; value: number }) {
-    const achievements = await prisma.achievement.findMany();
+    const achievements = await this.getAchievements();
     const earned = await prisma.userAchievement.findMany({ where: { userId }, select: { achievementId: true } });
     const earnedIds = new Set(earned.map((e) => e.achievementId));
 
-    for (const ach of achievements) {
-      if (earnedIds.has(ach.id)) continue;
+    const toAward = achievements.filter((ach) => {
+      if (earnedIds.has(ach.id)) return false;
       const criteria = ach.criteria as { type: string; value: number };
-      if (criteria.type === event.type && event.value >= criteria.value) {
-        await prisma.userAchievement.create({ data: { userId, achievementId: ach.id } });
-      }
+      return criteria.type === event.type && event.value >= criteria.value;
+    });
+
+    if (toAward.length > 0) {
+      await prisma.userAchievement.createMany({
+        data: toAward.map((ach) => ({ userId, achievementId: ach.id })),
+      });
     }
   },
 

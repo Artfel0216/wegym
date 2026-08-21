@@ -1,7 +1,6 @@
 import { memo, useState } from 'react';
 import { CheckCircle2, X, Play } from 'lucide-react';
 import { Exercise } from '@/types/training';
-import { getExerciseGifUrl } from '@/lib/exercise-gif';
 import { useTranslations } from '@/lib/i18n/hook';
 
 interface Props {
@@ -13,7 +12,7 @@ interface Props {
 export const ExerciseItem = memo(({ ex, isCompleted, onToggle }: Props) => {
   const { t } = useTranslations();
   const [showGif, setShowGif] = useState(false);
-  const gifUrl = getExerciseGifUrl(ex.name) || ex.gifUrl;
+  const gifUrl = ex.gifUrl;
 
   const handleToggle = () => {
     onToggle(ex.id);

@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "@/lib/i18n/hook";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { Loader2, CheckCircle2, Smile, Zap, Moon, Dumbbell } from "lucide-react";
+import { toast } from "sonner";
 
 export default function CheckinPage() {
   const { t } = useTranslations();
@@ -15,6 +16,7 @@ export default function CheckinPage() {
   const [saved, setSaved] = useState(false);
   const [streak, setStreak] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -30,8 +32,16 @@ export default function CheckinPage() {
   useEffect(() => { load(); }, [load]);
 
   const save = async () => {
-    await fetch("/api/checkin", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mood, energy, sleepHours: Number(sleepHours), trained, note }) });
-    setSaved(true); setTimeout(() => setSaved(false), 2000);
+    setIsSaving(true);
+    try {
+      const res = await fetch("/api/checkin", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mood, energy, sleepHours: Number(sleepHours), trained, note }) });
+      if (!res.ok) throw new Error("Erro ao salvar");
+      setSaved(true); setTimeout(() => setSaved(false), 2000);
+    } catch {
+      toast.error("Erro ao salvar check-in. Tente novamente.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const moods = [
@@ -66,8 +76,8 @@ export default function CheckinPage() {
                   <span className="text-sm font-black italic uppercase text-white">{t("checkin.trained")}</span>
                 </label>
                 <textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder={t("checkin.note")} rows={3} className="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-3 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-orange-500" />
-                <button onClick={save} className="w-full py-4 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-xs font-black uppercase italic cursor-pointer transition-colors flex items-center justify-center gap-2">
-                  {saved ? <><CheckCircle2 size={16} /> {t("checkin.saved")}</> : t("checkin.save")}
+                <button onClick={save} disabled={isSaving} className="w-full py-4 rounded-xl bg-orange-600 hover:bg-orange-700 disabled:bg-zinc-700 text-white text-xs font-black uppercase italic cursor-pointer transition-colors flex items-center justify-center gap-2 disabled:cursor-not-allowed">
+                  {isSaving ? <Loader2 size={16} className="animate-spin" /> : saved ? <><CheckCircle2 size={16} /> {t("checkin.saved")}</> : t("checkin.save")}
                 </button>
               </div>
             </>

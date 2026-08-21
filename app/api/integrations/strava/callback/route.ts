@@ -17,11 +17,18 @@ export async function GET(request: Request) {
       return Response.redirect(`${process.env.NEXTAUTH_URL}/profile?integration=strava&error=${error}`);
     }
 
-    if (!code || !state) {
+    if (!code || !state || !state.includes('.')) {
       return json({ error: 'Código de autorização ou estado inválido' }, 400);
     }
 
-    const stateData = JSON.parse(Buffer.from(state, 'base64').toString()) as {
+    const [stateBase64, providedHmac] = state.split('.', 2);
+    const { createHmac, timingSafeEqual } = await import('crypto');
+    const expectedHmac = createHmac('sha256', process.env.NEXTAUTH_SECRET ?? '').update(stateBase64).digest('hex');
+    if (!providedHmac || !timingSafeEqual(Buffer.from(providedHmac), Buffer.from(expectedHmac))) {
+      return json({ error: 'Estado inválido ou adulterado' }, 400);
+    }
+
+    const stateData = JSON.parse(Buffer.from(stateBase64, 'base64').toString()) as {
       userId: string;
       provider: string;
     };

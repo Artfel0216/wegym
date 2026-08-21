@@ -18,21 +18,23 @@ export const appointmentService = {
   },
 
   async book(userId: string, slotId: string, type: string, notes?: string) {
-    const slot = await prisma.appointmentSlot.findUnique({ where: { id: slotId } });
-    if (!slot || !slot.available) throw new Error('Horário indisponível');
-    const personalId = slot.personalId;
-    const date = new Date(slot.date);
-    const [h, m] = slot.startTime.split(':').map(Number);
-    date.setHours(h, m, 0, 0);
-    const [eh, em] = slot.endTime.split(':').map(Number);
-    const endDate = new Date(slot.date);
-    endDate.setHours(eh, em, 0, 0);
-    const durationMin = Math.round((endDate.getTime() - date.getTime()) / 60000);
-    const appointment = await prisma.appointment.create({
-      data: { athleteId: userId, personalId, date, durationMin, type, notes },
+    return prisma.$transaction(async (tx) => {
+      const slot = await tx.appointmentSlot.findUnique({ where: { id: slotId } });
+      if (!slot || !slot.available) throw new Error('Horário indisponível');
+      const personalId = slot.personalId;
+      const date = new Date(slot.date);
+      const [h, m] = slot.startTime.split(':').map(Number);
+      date.setHours(h, m, 0, 0);
+      const [eh, em] = slot.endTime.split(':').map(Number);
+      const endDate = new Date(slot.date);
+      endDate.setHours(eh, em, 0, 0);
+      const durationMin = Math.round((endDate.getTime() - date.getTime()) / 60000);
+      const appointment = await tx.appointment.create({
+        data: { athleteId: userId, personalId, date, durationMin, type, notes },
+      });
+      await tx.appointmentSlot.update({ where: { id: slotId }, data: { available: false } });
+      return appointment;
     });
-    await prisma.appointmentSlot.update({ where: { id: slotId }, data: { available: false } });
-    return appointment;
   },
 
   async getAppointments(userId: string, role: 'athlete' | 'personal') {

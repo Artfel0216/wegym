@@ -32,36 +32,38 @@ export const workoutSessionService = {
 
   async getStats(athleteId: string, period: 'week' | 'month' | 'year') {
     const now = new Date();
-    let startDate: Date;
+    const startDate = new Date(now);
     switch (period) {
       case 'week':
-        startDate = new Date(now.setDate(now.getDate() - 7));
+        startDate.setDate(startDate.getDate() - 7);
         break;
       case 'month':
-        startDate = new Date(now.setMonth(now.getMonth() - 1));
+        startDate.setMonth(startDate.getMonth() - 1);
         break;
       case 'year':
-        startDate = new Date(now.setFullYear(now.getFullYear() - 1));
+        startDate.setFullYear(startDate.getFullYear() - 1);
         break;
     }
 
-    const sessions = await prisma.workoutSession.findMany({
+    const aggregate = await prisma.workoutSession.aggregate({
       where: { athleteId, completedAt: { gte: startDate } },
+      _count: true,
+      _sum: { durationSec: true, calories: true, distanceKm: true },
+      _avg: { avgHeartRate: true },
     });
 
-    const totalVolume = sessions.reduce((acc, s) => acc + s.durationSec, 0);
-    const totalCalories = sessions.reduce((acc, s) => acc + (s.calories ?? 0), 0);
-    const totalDistance = sessions.reduce((acc, s) => acc + (s.distanceKm ?? 0), 0);
-    const avgHeartRate = sessions.length > 0
-      ? Math.round(sessions.reduce((acc, s) => acc + (s.avgHeartRate ?? 0), 0) / sessions.length)
-      : 0;
+    const sessions = await prisma.workoutSession.findMany({
+      where: { athleteId, completedAt: { gte: startDate } },
+      select: { completedAt: true, durationSec: true },
+      orderBy: { completedAt: 'desc' },
+    });
 
     return {
-      totalSessions: sessions.length,
-      totalVolume,
-      totalCalories,
-      totalDistance,
-      avgHeartRate,
+      totalSessions: aggregate._count,
+      totalVolume: aggregate._sum.durationSec ?? 0,
+      totalCalories: aggregate._sum.calories ?? 0,
+      totalDistance: aggregate._sum.distanceKm ?? 0,
+      avgHeartRate: aggregate._avg.avgHeartRate ? Math.round(aggregate._avg.avgHeartRate) : 0,
       chartData: sessions.reduce<Record<string, number>>((acc, s) => {
         const key = s.completedAt.toISOString().slice(0, 10);
         acc[key] = (acc[key] ?? 0) + s.durationSec;

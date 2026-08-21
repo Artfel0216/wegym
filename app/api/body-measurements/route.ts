@@ -1,6 +1,8 @@
-import { authenticate, handleError, json, created } from '@/lib/api-utils';
+import { authenticate, handleError, json, created, withRateLimit } from '@/lib/api-utils';
 import { measurementService } from '@/lib/services/measurement.service';
 import { prisma } from '@/lib/prisma';
+import { measurementSchema } from '@/lib/validation';
+import { ValidationError } from '@/lib/errors';
 
 export const runtime = 'nodejs';
 
@@ -23,10 +25,19 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const session = await authenticate();
+    const rateLimitResponse = await withRateLimit(request, `measurements:${session.user.id}`);
+    if (rateLimitResponse) return rateLimitResponse;
+
     const athlete = await prisma.athlete.findUnique({ where: { userId: session.user.id }, select: { id: true } });
     if (!athlete) return json({ error: 'Atleta não encontrado' }, 404);
     const body = await request.json();
-    const entry = await measurementService.create(athlete.id, body);
+    const parsed = measurementSchema.safeParse(body);
+    if (!parsed.success) throw new ValidationError('Medida inválida', parsed.error.issues);
+
+    const entry = await measurementService.create(athlete.id, {
+      ...parsed.data,
+      date: parsed.data.date ? new Date(parsed.data.date) : undefined,
+    });
     return created(entry);
   } catch (error) { return handleError(error); }
 }

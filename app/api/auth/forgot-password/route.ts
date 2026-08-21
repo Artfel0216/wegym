@@ -4,6 +4,7 @@ import { handleError, withRateLimit, getIP } from '@/lib/api-utils';
 import { forgotPasswordSchema } from '@/lib/validation';
 import { ValidationError } from '@/lib/errors';
 import { sendEmail, buildResetEmail } from '@/lib/email';
+import { auditLog } from '@/lib/audit';
 
 export const runtime = 'nodejs';
 
@@ -38,6 +39,12 @@ export async function POST(req: Request) {
         resetToken,
         resetTokenExpires: resetExpires,
       },
+    });
+
+    await auditLog({
+      userId: user.id,
+      action: 'password.forgot_request',
+      ip: getIP(req),
     });
 
     const resetUrl = `${process.env.NEXTAUTH_URL}/reset-password?token=${resetToken}`;

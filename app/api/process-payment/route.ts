@@ -1,4 +1,4 @@
-import { authenticate, handleError } from '@/lib/api-utils';
+import { authenticate, handleError, withRateLimit } from '@/lib/api-utils';
 import { paymentService } from '@/lib/services/payment.service';
 import { paymentSchema } from '@/lib/validation';
 import { ValidationError } from '@/lib/errors';
@@ -10,6 +10,9 @@ export const maxDuration = 15;
 
 export async function POST(request: Request) {
   try {
+    const rateLimitResponse = await withRateLimit(request, `payment:${request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? '127.0.0.1'}`);
+    if (rateLimitResponse) return rateLimitResponse;
+
     const session = await authenticate();
 
     const body = await request.json();

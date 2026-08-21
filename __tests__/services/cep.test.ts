@@ -15,7 +15,7 @@ describe('cepService', () => {
 
   it('should return valid data for known CEP', async () => {
     const result = await cepService.validate('01001000');
-    if (result.valid) {
+    if (result.valid && 'data' in result) {
       expect(result.data).toBeDefined();
       expect(result.data?.cep).toBeDefined();
     } else {

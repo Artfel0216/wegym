@@ -22,6 +22,11 @@ import {
   Users,
   UserPlus,
   ShieldCheck,
+  Newspaper,
+  Target,
+  Trophy,
+  BookOpen,
+  CheckCircle,
 } from "lucide-react";
 import { MODALITY_OPTIONS } from "@/constants/modalities";
 import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
@@ -105,6 +110,11 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
   const isOnPersonalStudents = isOnPersonal && personalView === "students";
   const isOnPersonalCreate = isOnPersonal && personalView === "create";
   const isOnPrivacy = pathname === "/privacy";
+  const isOnFeed = pathname === "/feed";
+  const isOnGoals = pathname === "/goals";
+  const isOnAchievements = pathname === "/achievements";
+  const isOnPrograms = pathname === "/programs";
+  const isOnCheckin = pathname === "/checkin";
 
 
   const effectiveCollapsed = hydrated ? collapsed : false;
@@ -304,7 +314,7 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
             />
           </>
         ) : (
-          <>
+          <nav aria-label={t('sidebar.mainMenu')}>
             <NavItem
               icon={Home}
               label={t('sidebar.home')}
@@ -384,13 +394,49 @@ export function Sidebar({ mobile = false, onClose }: SidebarProps) {
             )}
 
             <NavItem
+              icon={Newspaper}
+              label={t('sidebar.feed')}
+              showLabels={showLabels}
+              active={isOnFeed}
+              onClick={() => handleNavigate("/feed")}
+            />
+            <NavItem
+              icon={Target}
+              label={t('sidebar.goals')}
+              showLabels={showLabels}
+              active={isOnGoals}
+              onClick={() => handleNavigate("/goals")}
+            />
+            <NavItem
+              icon={BookOpen}
+              label={t('sidebar.programs')}
+              showLabels={showLabels}
+              active={isOnPrograms}
+              onClick={() => handleNavigate("/programs")}
+            />
+            <NavItem
+              icon={Trophy}
+              label={t('sidebar.achievements')}
+              showLabels={showLabels}
+              active={isOnAchievements}
+              onClick={() => handleNavigate("/achievements")}
+            />
+            <NavItem
+              icon={CheckCircle}
+              label={t('sidebar.checkin')}
+              showLabels={showLabels}
+              active={isOnCheckin}
+              onClick={() => handleNavigate("/checkin")}
+            />
+
+            <NavItem
               icon={BarChart3}
               label={t('sidebar.stats')}
               showLabels={showLabels}
               active={isOnStats}
               onClick={() => handleNavigate("/stats")}
             />
-          </>
+          </nav>
         )}
 
         {status !== "loading" && (
@@ -464,10 +510,12 @@ type NavItemProps = {
 };
 
 function NavItem({ icon: Icon, label, showLabels, active, onClick }: NavItemProps) {
+  const ariaLabel = !showLabels ? label : undefined;
   return (
     <button
       type="button"
       onClick={onClick}
+      aria-label={ariaLabel}
       title={!showLabels ? label : undefined}
       className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors text-left cursor-pointer ${
         active

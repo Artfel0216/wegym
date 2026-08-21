@@ -4,11 +4,14 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { useTranslations } from '@/lib/i18n/hook';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 const LGPD_CONSENT_KEY = 'wegym_lgpd_consent';
 
 export function ConsentBanner() {
   const { t } = useTranslations();
+  const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [visible, setVisible] = useState(false);
 
@@ -17,9 +20,19 @@ export function ConsentBanner() {
     setVisible(!localStorage.getItem(LGPD_CONSENT_KEY));
   }, []);
 
-  const accept = () => {
-    localStorage.setItem(LGPD_CONSENT_KEY, new Date().toISOString());
-    setVisible(false);
+  const accept = async () => {
+    try {
+      await fetch('/api/user/consent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ termsAccepted: true, privacyAccepted: true, dataConsent: true }),
+      });
+      localStorage.setItem(LGPD_CONSENT_KEY, new Date().toISOString());
+      setVisible(false);
+      toast.success(t('consent.accepted'));
+    } catch (err) {
+      toast.error(t('consent.error'));
+    }
   };
 
   if (!mounted) return null;
@@ -43,7 +56,7 @@ export function ConsentBanner() {
                 <strong className="text-orange-500">{t('consent.lgpd')}</strong>.
                 {' '}{t('consent.privacyPolicy')}{' '}
                 <Link
-                  href="/privacy"
+                  href="/terms"
                   className="text-orange-500 underline hover:text-orange-400"
                   onClick={() => localStorage.setItem(LGPD_CONSENT_KEY, new Date().toISOString())}
                 >

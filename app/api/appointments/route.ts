@@ -1,5 +1,7 @@
-import { authenticate, handleError, json, created } from '@/lib/api-utils';
+import { authenticate, handleError, json, created, withRateLimit } from '@/lib/api-utils';
 import { appointmentService } from '@/lib/services/appointment.service';
+import { appointmentBookSchema, appointmentActionSchema } from '@/lib/validation';
+import { ValidationError } from '@/lib/errors';
 
 export const runtime = 'nodejs';
 
@@ -15,27 +17,30 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const session = await authenticate();
+    const rateLimitResponse = await withRateLimit(request, `appointments:${session.user.id}`);
+    if (rateLimitResponse) return rateLimitResponse;
+
     const body = await request.json();
-    if (body.slotId) {
-      const appointment = await appointmentService.book(session.user.id, body.slotId, body.type, body.notes);
-      return created(appointment);
-    }
-    return json({ error: 'slotId é obrigatório' }, 400);
+    const parsed = appointmentBookSchema.safeParse(body);
+    if (!parsed.success) throw new ValidationError('Dados inválidos', parsed.error.issues);
+
+    const appointment = await appointmentService.book(session.user.id, parsed.data.slotId, parsed.data.type ?? '', parsed.data.notes);
+    return created(appointment);
   } catch (error) { return handleError(error); }
 }
 
 export async function PATCH(request: Request) {
   try {
     const session = await authenticate();
-    const { id, action } = await request.json();
-    if (action === 'cancel') {
-      await appointmentService.cancel(id, session.user.id);
+    const body = await request.json();
+    const parsed = appointmentActionSchema.safeParse(body);
+    if (!parsed.success) throw new ValidationError('Ação inválida', parsed.error.issues);
+
+    if (parsed.data.action === 'cancel') {
+      await appointmentService.cancel(parsed.data.id, session.user.id);
       return json({ success: true });
     }
-    if (action === 'confirm') {
-      const appt = await appointmentService.confirm(id);
-      return json(appt);
-    }
-    return json({ error: 'Ação inválida' }, 400);
+    const appt = await appointmentService.confirm(parsed.data.id);
+    return json(appt);
   } catch (error) { return handleError(error); }
 }

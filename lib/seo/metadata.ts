@@ -29,7 +29,7 @@ export async function generatePageMetadata(config: PageConfig): Promise<Metadata
 
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000'
   const url = `${baseUrl}${config.path}`
-  const imageUrl = `${baseUrl}/og-image.svg`
+  const imageUrl = `${baseUrl}/og-image.png`
 
   return {
     title,
@@ -55,16 +55,22 @@ export async function generatePageMetadata(config: PageConfig): Promise<Metadata
 
 export const PAGE_CONFIGS: Record<string, PageConfig> = {
   root: { titleKey: 'app.title', descriptionKey: 'app.description', path: '/' },
-  login: { titleKey: 'login.title', descriptionKey: 'app.description', path: '/login' },
-  home: { titleKey: 'app.title', descriptionKey: 'app.description', path: '/home' },
-  training: { titleKey: 'app.title', descriptionKey: 'app.description', path: '/training' },
-  profile: { titleKey: 'profile.title', descriptionKey: 'app.description', path: '/profile' },
-  stats: { titleKey: 'stats.title', descriptionKey: 'app.description', path: '/stats' },
-  pro: { titleKey: 'pro.title', descriptionKey: 'app.description', path: '/pro' },
-  payment: { titleKey: 'payment.title', descriptionKey: 'app.description', path: '/payment' },
-  personal: { titleKey: 'app.title', descriptionKey: 'app.description', path: '/personal' },
-  privacy: { titleKey: 'privacy.title', descriptionKey: 'app.description', path: '/privacy' },
+  login: { titleKey: 'login.title', descriptionKey: 'login.description', path: '/login' },
+  home: { titleKey: 'app.title', descriptionKey: 'home.description', path: '/home' },
+  training: { titleKey: 'app.title', descriptionKey: 'training.description', path: '/training' },
+  profile: { titleKey: 'profile.title', descriptionKey: 'profile.description', path: '/profile' },
+  stats: { titleKey: 'stats.title', descriptionKey: 'stats.description', path: '/stats' },
+  pro: { titleKey: 'pro.title', descriptionKey: 'pro.description', path: '/pro' },
+  payment: { titleKey: 'payment.title', descriptionKey: 'payment.description', path: '/payment' },
+  personal: { titleKey: 'app.title', descriptionKey: 'personal.description', path: '/personal' },
+  privacy: { titleKey: 'privacy.title', descriptionKey: 'privacy.description', path: '/privacy' },
   resetPassword: { titleKey: 'resetPassword.title', descriptionKey: 'app.description', path: '/reset-password' },
   offline: { titleKey: 'offline.title', descriptionKey: 'app.description', path: '/offline' },
   notFound: { titleKey: 'notFound.title', descriptionKey: 'app.description', path: '/404' },
+  goals: { titleKey: 'app.title', descriptionKey: 'goals.description', path: '/goals' },
+  achievements: { titleKey: 'achievements.title', descriptionKey: 'achievements.description', path: '/achievements' },
+  programs: { titleKey: 'programs.title', descriptionKey: 'programs.description', path: '/programs' },
+  checkin: { titleKey: 'checkin.title', descriptionKey: 'checkin.description', path: '/checkin' },
+  nutrition: { titleKey: 'nutrition.title', descriptionKey: 'nutrition.description', path: '/nutrition' },
+  measurements: { titleKey: 'measurements.title', descriptionKey: 'measurements.description', path: '/measurements' },
 }

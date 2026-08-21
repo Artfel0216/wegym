@@ -1,5 +1,7 @@
-import { authenticate, handleError, json, created } from '@/lib/api-utils';
+import { authenticate, handleError, json, created, withRateLimit } from '@/lib/api-utils';
 import { socialService } from '@/lib/services/social.service';
+import { socialPostSchema } from '@/lib/validation';
+import { ValidationError } from '@/lib/errors';
 
 export const runtime = 'nodejs';
 
@@ -20,8 +22,14 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const session = await authenticate();
+    const rateLimitResponse = await withRateLimit(request, `social:${session.user.id}`);
+    if (rateLimitResponse) return rateLimitResponse;
+
     const body = await request.json();
-    const post = await socialService.createPost(session.user.id, body);
+    const parsed = socialPostSchema.safeParse(body);
+    if (!parsed.success) throw new ValidationError('Post inválido', parsed.error.issues);
+
+    const post = await socialService.createPost(session.user.id, parsed.data);
     return created(post);
   } catch (error) { return handleError(error); }
 }

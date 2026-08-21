@@ -15,6 +15,12 @@ const routes = [
   { path: '/privacy', priority: 0.4, changeFrequency: 'yearly' as const },
   { path: '/reset-password', priority: 0.1, changeFrequency: 'monthly' as const },
   { path: '/offline', priority: 0.1, changeFrequency: 'monthly' as const },
+  { path: '/goals', priority: 0.5, changeFrequency: 'weekly' as const },
+  { path: '/achievements', priority: 0.3, changeFrequency: 'monthly' as const },
+  { path: '/programs', priority: 0.5, changeFrequency: 'weekly' as const },
+  { path: '/checkin', priority: 0.5, changeFrequency: 'weekly' as const },
+  { path: '/nutrition', priority: 0.5, changeFrequency: 'weekly' as const },
+  { path: '/measurements', priority: 0.3, changeFrequency: 'monthly' as const },
 ]
 
 export default function sitemap(): MetadataRoute.Sitemap {

@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "@/lib/i18n/hook";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { Loader2, Plus, Target, CheckCircle2, X, Trophy, Calendar } from "lucide-react";
+import { toast } from "sonner";
 
 type Goal = { id: string; title: string; description?: string; category: string; metric: string; targetValue: number; currentValue: number; endDate: string; status: string };
 
@@ -15,6 +16,7 @@ export default function GoalsPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ title: "", category: "workout", metric: "sessions", targetValue: 10, endDate: "" });
+  const [isSaving, setIsSaving] = useState(false);
 
   const load = useCallback(async () => {
     try { const r = await fetch("/api/goals", { credentials: "include" }); if (r.ok) setGoals(await r.json()); }
@@ -24,13 +26,26 @@ export default function GoalsPage() {
   useEffect(() => { load(); }, [load]);
 
   const createGoal = async () => {
-    await fetch("/api/goals", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...form, endDate: new Date(form.endDate), userId: "" }) });
-    setShowForm(false); setForm({ title: "", category: "workout", metric: "sessions", targetValue: 10, endDate: "" }); load();
+    setIsSaving(true);
+    try {
+      const res = await fetch("/api/goals", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...form, endDate: form.endDate ? new Date(form.endDate) : undefined, userId: "" }) });
+      if (!res.ok) throw new Error("Erro ao criar meta");
+      setShowForm(false); setForm({ title: "", category: "workout", metric: "sessions", targetValue: 10, endDate: "" }); load();
+    } catch {
+      toast.error("Erro ao criar meta. Tente novamente.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const updateProgress = async (id: string, val: number) => {
-    await fetch("/api/goals", { method: "PATCH", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, currentValue: val }) });
-    load();
+    try {
+      const res = await fetch("/api/goals", { method: "PATCH", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, currentValue: val }) });
+      if (!res.ok) throw new Error("Erro ao atualizar");
+      load();
+    } catch {
+      toast.error("Erro ao atualizar progresso. Tente novamente.");
+    }
   };
 
   const CAT_ICONS: Record<string, React.ComponentType<{ size?: number; className?: string }>> = { workout: Trophy, weight: Target, nutrition: CheckCircle2, cardio: Trophy, custom: Target };
@@ -56,7 +71,9 @@ export default function GoalsPage() {
               <input type="date" value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} className="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-orange-500" />
               <div className="flex gap-3">
                 <button onClick={() => setShowForm(false)} className="flex-1 py-3 rounded-xl bg-zinc-800 text-zinc-300 text-xs font-black uppercase italic cursor-pointer">Cancelar</button>
-                <button onClick={createGoal} disabled={!form.title} className="flex-1 py-3 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-xs font-black uppercase italic cursor-pointer disabled:opacity-50">Salvar</button>
+                <button onClick={createGoal} disabled={!form.title || isSaving} className="flex-1 py-3 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-xs font-black uppercase italic cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2">
+                  {isSaving ? <Loader2 size={14} className="animate-spin" /> : "Salvar"}
+                </button>
               </div>
             </div>
           )}
