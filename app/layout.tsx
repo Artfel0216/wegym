@@ -108,7 +108,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body className="overscroll-none touch-callout-none">
+<body className="overscroll-none touch-callout-none">
         <a href="#main-content" className="skip-link visually-hidden focus-visible:focus focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:orange-500">
           Pular para o conteúdo principal
         </a>
@@ -120,6 +120,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <PwaSync />
         </I18nWrapper>
         <Toaster theme="dark" />
+<script dangerouslySetInnerHTML={{__html: `(function(){if('caches' in window){caches.keys().then((keys)=>{keys.forEach((key)=>{caches.delete(key)})})}const ls=localStorage;ls.removeItem('__NEXT_DATA__');const ss=sessionStorage;ss.removeItem('__NEXT_DATA__')})()`}}
+        />
       </body>
     </html>
   );

@@ -36,7 +36,7 @@ const nextConfig: NextConfig = {
     turbopackFileSystemCacheForDev: true,
   },
 
-  async headers() {
+async headers() {
     return [
       {
         source: '/sw.js',
@@ -58,12 +58,15 @@ const nextConfig: NextConfig = {
           { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
         ],
       },
-{
+      {
         source: '/:path*',
         headers: [
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           { key: 'X-Frame-Options', value: 'DENY' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          { key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' },
+          { key: 'Pragma', value: 'no-cache' },
+          { key: 'Expires', value: '0' },
           { key: 'Content-Security-Policy', value: "default-src 'self'; script-src 'self' 'unsafe-inline'; worker-src 'self' blob:; style-src 'self'; img-src 'self' data: https:; connect-src 'self' api.mercadopago.com api.resend.com viacep.com.br *.ingest.us.sentry.io raw.githubusercontent.com cdn.jsdelivr.net ui-avatars.com; frame-src 'none'; frame-ancestors 'none'; object-src 'none'; font-src 'self' data:" },
           { key: 'Link', value: '<https://fonts.googleapis.com>; rel=preconnect' },
           { key: 'Link', value: '<https://fonts.gstatic.com>; rel=preconnect; crossorigin' },
