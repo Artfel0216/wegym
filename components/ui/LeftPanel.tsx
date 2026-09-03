@@ -1,11 +1,16 @@
 // src/components/LeftPanel.tsx
 "use client";
 
-import React from 'react';
+import React from "react";
 import { motion } from 'framer-motion';
 import { Dumbbell } from 'lucide-react';
 import { useTranslations } from '@/lib/i18n/hook';
 import { FloatingDumbbell3D } from './FloatingDumbbell3D';
+
+const FloatingDumbbell3DDynamic = dynamic(
+  () => import('./FloatingDumbbell3D').then(mod => mod.FloatingDumbbell3D),
+  { ssr: false }
+);
 
 export const LeftPanel = React.memo(() => {
   const { t } = useTranslations();
@@ -55,7 +60,7 @@ export const LeftPanel = React.memo(() => {
       </div>
 
       <div className="relative z-10 mt-10 flex justify-center">
-        <FloatingDumbbell3D />
+        <FloatingDumbbell3DDynamic />
       </div>
     </div>
   );

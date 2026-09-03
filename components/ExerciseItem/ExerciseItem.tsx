@@ -84,6 +84,9 @@ export const ExerciseItem = memo(({ ex, isCompleted, onToggle }: Props) => {
               <img
                 src={gifUrl}
                 alt={ex.name}
+                loading="lazy"
+                width={400}
+                height={300}
                 className="w-full h-auto max-h-[50vh] object-contain rounded-xl"
                 onError={(e) => {
                   (e.target as HTMLImageElement).src = `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect width="200" height="200" fill="%2318181b"/><text x="100" y="100" font-family="sans-serif" font-size="14" fill="%2352525b" text-anchor="middle" dominant-baseline="middle">${t('exercise.gifUnavailable')}</text></svg>`;

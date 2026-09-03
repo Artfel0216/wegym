@@ -23,7 +23,12 @@ import { DaySelector } from '@/components/training/DaySelector';
 import { GymSidebar } from '@/components/training/GymSidebar';
 import { GymExerciseList } from '@/components/training/GymExerciseList';
 import { ModalityHistory } from '@/components/training/ModalityHistory';
-import { AiWorkoutModal } from '@/components/training/AiWorkoutModal';
+import dyn from 'next/dynamic';
+
+const AiWorkoutModal = dyn(
+  () => import('@/components/training/AiWorkoutModal').then(mod => mod.AiWorkoutModal),
+  { ssr: false }
+);
 import { ChatPanel } from '@/components/training/ChatPanel';
 import { FloatingChatButton } from '@/components/training/FloatingChatButton';
 import { NonGymSession } from '@/components/training/NonGymSession';

@@ -16,7 +16,7 @@ interface GymSidebarProps {
   onOpenAi: () => void;
 }
 
-export function GymSidebar({ timeLeft, timerActive, progressPercentage, progressBarRef, onToggleTimer, onResetTimer, onOpenAi }: GymSidebarProps) {
+function GymSidebarInner({ timeLeft, timerActive, progressPercentage, progressBarRef, onToggleTimer, onResetTimer, onOpenAi }: GymSidebarProps) {
   const { t } = useTranslations();
 
   return (
@@ -98,3 +98,5 @@ export function GymSidebar({ timeLeft, timerActive, progressPercentage, progress
     </aside>
   );
 }
+
+export const GymSidebar = React.memo(GymSidebarInner);

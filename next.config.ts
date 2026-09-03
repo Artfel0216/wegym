@@ -20,7 +20,15 @@ const nextConfig: NextConfig = {
         hostname: 'ui-avatars.com',
         pathname: '/api/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'picsum.photos',
+        pathname: '/**',
+      },
     ],
+    formats: ['image/webp', 'image/avif'],
+    dangerouslyAllowSVG: false,
+    contentSecurityPolicy: "default-src 'self'; script-src 'self'; sandbox;",
   },
 
   experimental: {
@@ -56,7 +64,15 @@ const nextConfig: NextConfig = {
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           { key: 'X-Frame-Options', value: 'DENY' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-          { key: 'Content-Security-Policy', value: "default-src 'self'; script-src 'self'; worker-src 'self' blob:; style-src 'self'; img-src 'self' ui-avatars.com data: raw.githubusercontent.com cdn.jsdelivr.net; connect-src 'self' api.mercadopago.com api.resend.com viacep.com.br *.ingest.us.sentry.io raw.githubusercontent.com cdn.jsdelivr.net ui-avatars.com; frame-src 'none'; frame-ancestors 'none'; object-src 'none'; font-src 'self' data:" },
+          { key: 'Content-Security-Policy', value: "default-src 'self'; script-src 'self' 'unsafe-inline'; worker-src 'self' blob:; style-src 'self'; img-src 'self' data: https:; connect-src 'self' api.mercadopago.com api.resend.com viacep.com.br *.ingest.us.sentry.io raw.githubusercontent.com cdn.jsdelivr.net ui-avatars.com; frame-src 'none'; frame-ancestors 'none'; object-src 'none'; font-src 'self' data:" },
+          { key: 'Link', value: '<https://fonts.googleapis.com>; rel=preconnect' },
+          { key: 'Link', value: '<https://fonts.gstatic.com>; rel=preconnect; crossorigin' },
+          { key: 'Link', value: '<https://ui-avatars.com>; rel=preconnect' },
+          { key: 'Link', value: '<https://cdn.jsdelivr.net>; rel=dns-prefetch' },
+          { key: 'Link', value: '<https://api.mercadopago.com>; rel=dns-prefetch' },
+          { key: 'Link', value: '<https://api.resend.com>; rel=dns-prefetch' },
+          { key: 'Link', value: '<https://viacep.com.br>; rel=dns-prefetch' },
+          { key: 'Link', value: '<https://*.ingest.us.sentry.io>; rel=dns-prefetch' },
           { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains; preload' },
           {
             key: 'Permissions-Policy',

@@ -16,7 +16,7 @@ interface GymExerciseListProps {
   onToggleExercise: (id: string) => void;
 }
 
-export function GymExerciseList({ currentPlan, completedIds, dayKey, targetKey, onToggleExercise }: GymExerciseListProps) {
+function GymExerciseListInner({ currentPlan, completedIds, dayKey, targetKey, onToggleExercise }: GymExerciseListProps) {
   const { t } = useTranslations();
 
   return (
@@ -55,3 +55,5 @@ export function GymExerciseList({ currentPlan, completedIds, dayKey, targetKey, 
     </ScrollReveal>
   );
 }
+
+export const GymExerciseList = React.memo(GymExerciseListInner);

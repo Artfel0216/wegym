@@ -12,13 +12,16 @@ export default function RouteMap({ coordinates, height = 200, interactive = true
   const mapRef = useRef<HTMLDivElement>(null);
   const instanceRef = useRef<L.Map | null>(null);
 
+  // Dynamic import of Leaflet to reduce initial bundle size
+  let L: any;
+
   useEffect(() => {
     if (!mapRef.current || coordinates.length < 2) return;
 
     let cancelled = false;
 
     async function init() {
-      const L = (await import('leaflet')).default;
+      L = (await import('leaflet')).default;
 
       if (cancelled) return;
 
