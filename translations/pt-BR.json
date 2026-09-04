@@ -518,7 +518,8 @@
     "viewDemo": "Ver demonstração",
     "weight": "Peso",
     "gifUnavailable": "GIF indisponível",
-    "weightPlaceholder": "0"
+    "weightPlaceholder": "0",
+    "closeModal": "Fechar"
   },
   "chatbot": {
     "title": "COACH GEMINI",

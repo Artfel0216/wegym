@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Activity } from "lucide-react";
 import { useTranslations } from "@/lib/i18n/hook";
@@ -18,6 +18,15 @@ interface GymExerciseListProps {
 
 function GymExerciseListInner({ currentPlan, completedIds, dayKey, targetKey, onToggleExercise }: GymExerciseListProps) {
   const { t } = useTranslations();
+  const [openGifExercise, setOpenGifExercise] = useState<Exercise | null>(null);
+
+  const handleOpenGif = (ex: Exercise) => {
+    setOpenGifExercise(ex);
+  };
+
+  const handleCloseGif = () => {
+    setOpenGifExercise(null);
+  };
 
   return (
     <ScrollReveal className="lg:col-span-2 space-y-4" y={24} rotateX={10}>
@@ -43,6 +52,9 @@ function GymExerciseListInner({ currentPlan, completedIds, dayKey, targetKey, on
                     ex={ex}
                     isCompleted={!!ex.id && completedIds.includes(ex.id)}
                     onToggle={onToggleExercise}
+                    showGif={openGifExercise?.id === ex.id}
+                    onOpenGif={handleOpenGif}
+                    onCloseGif={handleCloseGif}
                   />
                 </motion.div>
               ))

@@ -1,23 +1,27 @@
-import { memo, useState } from 'react';
+import { memo } from 'react';
 import { CheckCircle2, X, Play } from 'lucide-react';
 import { Exercise } from '@/types/training';
 import { useTranslations } from '@/lib/i18n/hook';
+import { motion } from 'framer-motion';
+import { ExerciseModal } from './ExerciseModal';
 
 interface Props {
   ex: Exercise;
   isCompleted: boolean;
   onToggle: (id: string) => void;
+  showGif?: boolean;
+  onOpenGif?: (ex: Exercise) => void;
+  onCloseGif?: () => void;
 }
 
-export const ExerciseItem = memo(({ ex, isCompleted, onToggle }: Props) => {
+export const ExerciseItem = memo(({ ex, isCompleted, onToggle, showGif, onOpenGif, onCloseGif }: Props) => {
   const { t } = useTranslations();
-  const [showGif, setShowGif] = useState(false);
   const gifUrl = ex.gifUrl;
 
   const handleToggle = () => {
     onToggle(ex.id);
-    if (!isCompleted && gifUrl) {
-      setShowGif(true);
+    if (!isCompleted && gifUrl && onOpenGif) {
+      onOpenGif(ex);
     }
   };
 
@@ -25,21 +29,30 @@ export const ExerciseItem = memo(({ ex, isCompleted, onToggle }: Props) => {
     <>
       <div className="p-5 flex items-center justify-between border-b border-white/5 transition-all">
         <div className="flex items-center space-x-4">
-          <button
+          <motion.button
             onClick={handleToggle}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             className={`w-10 h-10 rounded-xl flex items-center justify-center border-2 transition-all cursor-pointer
               ${isCompleted ? 'bg-emerald-500 border-emerald-400' : 'bg-zinc-950 border-zinc-800 hover:border-orange-500'}`}
           >
             {isCompleted ? (
               <CheckCircle2 size={18} className="text-zinc-950" />
             ) : (
-              gifUrl && <Play size={14} className="text-zinc-500" />
+              gifUrl && (
+                <motion.div
+                  animate={{ rotate: [0, 10, -10, 0] }}
+                  transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 2 }}
+                >
+                  <Play size={14} className="text-zinc-500" />
+                </motion.div>
+              )
             )}
-          </button>
+          </motion.button>
 
           <div>
             <button
-              onClick={() => gifUrl && setShowGif(true)}
+              onClick={() => gifUrl && onOpenGif?.(ex)}
               className={`font-black uppercase italic text-sm text-left cursor-pointer ${isCompleted ? 'text-zinc-600 line-through' : 'text-white hover:text-orange-400'} ${gifUrl ? '' : 'cursor-default'}`}
               title={gifUrl ? t('exercise.viewDemo') : undefined}
             >
@@ -62,39 +75,12 @@ export const ExerciseItem = memo(({ ex, isCompleted, onToggle }: Props) => {
       </div>
 
       {showGif && gifUrl && (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
-          onClick={() => setShowGif(false)}
-        >
-          <div
-            className="relative bg-zinc-900 border border-white/10 rounded-3xl overflow-hidden max-w-lg w-full shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              onClick={() => setShowGif(false)}
-              className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-black/50 flex items-center justify-center cursor-pointer hover:bg-black/70 transition-colors"
-            >
-              <X size={16} className="text-white" />
-            </button>
-            <div className="bg-zinc-950 p-4 border-b border-white/5">
-              <p className="font-black uppercase italic text-sm text-white">{ex.name}</p>
-              <p className="text-[10px] text-orange-500 font-bold mt-0.5">{ex.muscle} • {ex.sets}{t('chatbot.times')}{ex.reps}</p>
-            </div>
-            <div className="bg-zinc-900 flex items-center justify-center p-2">
-              <img
-                src={gifUrl}
-                alt={ex.name}
-                loading="lazy"
-                width={400}
-                height={300}
-                className="w-full h-auto max-h-[50vh] object-contain rounded-xl"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect width="200" height="200" fill="%2318181b"/><text x="100" y="100" font-family="sans-serif" font-size="14" fill="%2352525b" text-anchor="middle" dominant-baseline="middle">${t('exercise.gifUnavailable')}</text></svg>`;
-                }}
-              />
-            </div>
-          </div>
-        </div>
+        <ExerciseModal
+          ex={{ name: ex.name, muscle: ex.muscle, sets: ex.sets, reps: ex.reps }}
+          gifUrl={gifUrl}
+          isOpen={showGif}
+          onClose={onCloseGif!}
+        />
       )}
     </>
   );

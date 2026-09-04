@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { Dumbbell } from 'lucide-react';
 import { useTranslations } from '@/lib/i18n/hook';
 import { FloatingDumbbell3D } from './FloatingDumbbell3D';
+import dynamic from 'next/dynamic';
 
 const FloatingDumbbell3DDynamic = dynamic(
   () => import('./FloatingDumbbell3D').then(mod => mod.FloatingDumbbell3D),

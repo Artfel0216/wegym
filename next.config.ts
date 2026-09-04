@@ -67,7 +67,7 @@ async headers() {
           { key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' },
           { key: 'Pragma', value: 'no-cache' },
           { key: 'Expires', value: '0' },
-          { key: 'Content-Security-Policy', value: "default-src 'self'; script-src 'self' 'unsafe-inline'; worker-src 'self' blob:; style-src 'self'; img-src 'self' data: https:; connect-src 'self' api.mercadopago.com api.resend.com viacep.com.br *.ingest.us.sentry.io raw.githubusercontent.com cdn.jsdelivr.net ui-avatars.com; frame-src 'none'; frame-ancestors 'none'; object-src 'none'; font-src 'self' data:" },
+          { key: 'Content-Security-Policy', value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; worker-src 'self' blob:; style-src 'self'; img-src 'self' data: https:; connect-src 'self' api.mercadopago.com api.resend.com viacep.com.br *.ingest.us.sentry.io raw.githubusercontent.com cdn.jsdelivr.net ui-avatars.com; frame-src 'none'; frame-ancestors 'none'; object-src 'none'; font-src 'self' data:" },
           { key: 'Link', value: '<https://fonts.googleapis.com>; rel=preconnect' },
           { key: 'Link', value: '<https://fonts.gstatic.com>; rel=preconnect; crossorigin' },
           { key: 'Link', value: '<https://ui-avatars.com>; rel=preconnect' },

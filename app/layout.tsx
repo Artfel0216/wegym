@@ -89,20 +89,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="shortcut icon" href="/icon-192.png" />
         <meta name="apple-mobile-web-app-title" content="WEGYM" />
         {/* Hreflang tags for SEO */}
-        <link rel="alternate" hreflang="pt-BR" href={`${baseUrl}/`} />
-        <link rel="alternate" hreflang="en" href={`${baseUrl}/en`} />
-        <link rel="alternate" hreflang="es" href={`${baseUrl}/es`} />
-        <link rel="alternate" hreflang="fr" href={`${baseUrl}/fr`} />
-        <link rel="alternate" hreflang="de" href={`${baseUrl}/de`} />
-        <link rel="alternate" hreflang="it" href={`${baseUrl}/it`} />
+        <link rel="alternate" hrefLang="pt-BR" href={`${baseUrl}/`} />
+        <link rel="alternate" hrefLang="en" href={`${baseUrl}/en`} />
+        <link rel="alternate" hrefLang="es" href={`${baseUrl}/es`} />
+        <link rel="alternate" hrefLang="fr" href={`${baseUrl}/fr`} />
+        <link rel="alternate" hrefLang="de" href={`${baseUrl}/de`} />
+        <link rel="alternate" hrefLang="it" href={`${baseUrl}/it`} />
         <link rel="preconnect" href="https://ui-avatars.com" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://ui-avatars.com" />
         <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
         <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
-        <link rel="preload" href="/fonts/inter.woff2" as="font" type="font/woff2" crossorigin />
-        <link rel="preload" href="/fonts/geomancy.woff2" as="font" type="font/woff2" crossorigin />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
