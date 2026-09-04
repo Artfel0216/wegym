@@ -1,82 +1,67 @@
-"use client";
-import React, { useCallback, useEffect, useState, lazy, Suspense } from "react";
-import { useTranslations } from "@/lib/i18n/hook";
-import { AuthGuard } from "@/components/auth/AuthGuard";
-import { Heart, MessageCircle, Loader2, Send } from "lucide-react";
-import { useSession } from "next-auth/react";
+import { unstable_cache } from "next/cache";
+import { headers } from "next/headers";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { redirect } from "next/navigation";
+import { FeedClient } from "./FeedClient";
 
-const LazyHeart = lazy(() => import("lucide-react").then(m => m.Heart));
-const LazyLoader2 = lazy(() => import("lucide-react").then(m => m.Loader2));
+const PAGE_LIMIT = 10;
 
-type Post = { id: string; text?: string; createdAt: string; user: { displayName: string; avatarUrl?: string }; _count: { likes: number; comments: number }; likes: { userId: string }[]; comments: { id: string; text: string; userId: string; user: { displayName: string } }[] };
+async function getFeedData(userId: string, cursor?: string) {
+  const where: Record<string, unknown> = {};
+  if (cursor) where.id = { lt: cursor };
 
-export default function FeedPage() {
-  const { t } = useTranslations();
-  const { data: session } = useSession();
-  const currentUserId = session?.user?.id;
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [newPost, setNewPost] = useState("");
-  const [csrfToken, setCsrfToken] = useState<string>("");
+  const [posts, friendships] = await Promise.all([
+    prisma.socialPost.findMany({
+      where,
+      take: PAGE_LIMIT + 1,
+      orderBy: { createdAt: "desc" },
+      include: {
+        user: { select: { id: true, displayName: true, avatarUrl: true } },
+        likes: { select: { userId: true } },
+        _count: { select: { likes: true, comments: true } },
+      },
+    }),
+    prisma.friendship.findMany({
+      where: {
+        OR: [{ requesterId: userId }, { addresseeId: userId }],
+        status: "accepted",
+      },
+      select: { requesterId: true, addresseeId: true },
+    }),
+  ]);
 
-  const load = useCallback(async () => {
-    try { const r = await fetch("/api/social?feed=friends", { credentials: "include" }); if (r.ok) setPosts(await r.json()); } finally { setLoading(false); }
-  }, []);
+  const hasMore = posts.length > PAGE_LIMIT;
+  const sliced = hasMore ? posts.slice(0, PAGE_LIMIT) : posts;
+  const nextCursor = hasMore ? sliced[sliced.length - 1].id : null;
 
-  useEffect(() => {
-    const getCsrfToken = async () => {
-      const res = await fetch('/api/csrf', { credentials: 'include' });
-      const data = await res.json();
-      setCsrfToken(data.csrfToken || '');
-    };
-    getCsrfToken();
-  }, []);
-  useEffect(() => { load(); }, [load]);
+  return { posts: sliced, nextCursor, hasMore, friends: friendships };
+}
 
-  const createPost = async () => {
-    if (!newPost.trim()) return;
-    await fetch("/api/social", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text: newPost }) });
-    setNewPost(""); load();
-  };
+const getCachedFeed = unstable_cache(getFeedData, ["feed-page"], {
+  revalidate: 15,
+  tags: ["social-feed"],
+});
 
-  const toggleLike = async (postId: string) => {
-    const res = await fetch(`/api/social/${postId}/like`, {
-      method: "POST",
-      credentials: "include",
-      headers: { "X-CSRF-TOKEN": csrfToken }
-    });
-    const data = await res.json();
-    if (data.liked) load();
-  };
+async function getSessionData() {
+  const session = await getServerSession(authOptions);
+  return session;
+}
 
-  return (
-    <AuthGuard>
-      <div className="min-h-screen bg-zinc-950 text-zinc-100 pb-20 font-sans antialiased">
-        <header className="sticky top-0 z-40 bg-zinc-950/40 backdrop-blur-md border-b border-white/5 px-4 sm:px-6 py-4"><h1 className="text-lg sm:text-xl font-black italic uppercase tracking-tighter text-white">{t("feed.title")}</h1></header>
-        <main className="max-w-3xl mx-auto px-4 sm:px-6 pt-8 space-y-4">
-          <div className="bg-zinc-900/40 border border-white/5 rounded-4xl p-4 flex gap-3">
-            <input value={newPost} onChange={(e) => setNewPost(e.target.value)} placeholder={t("feed.placeholder")} className="flex-1 bg-transparent text-sm text-white placeholder:text-zinc-600 outline-none" />
-            <button onClick={createPost} disabled={!newPost.trim()} className="bg-orange-600 hover:bg-orange-700 disabled:bg-zinc-700 text-white p-3 rounded-xl cursor-pointer transition-colors disabled:cursor-not-allowed"><Send size={16} /></button>
-          </div>
-          {loading ? <div className="flex justify-center pt-12"><Loader2 size={24} className="animate-spin text-orange-500" /></div> : posts.length === 0 ? (
-            <div className="text-center pt-20"><MessageCircle size={48} className="mx-auto text-zinc-600 mb-4" /><p className="text-zinc-500 text-sm">{t("feed.noPosts")}</p></div>
-          ) : posts.map((post) => (
-            <div key={post.id} className="bg-zinc-900/40 border border-white/5 rounded-4xl p-5">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-9 h-9 rounded-2xl bg-orange-600/20 flex items-center justify-center text-orange-500 text-sm font-bold">{post.user.displayName?.charAt(0) || "?"}</div>
-                <div><p className="text-sm font-black italic text-white">{post.user.displayName}</p><p className="text-[10px] text-zinc-500">{new Date(post.createdAt).toLocaleDateString("pt-BR")}</p></div>
-              </div>
-              {post.text && <p className="text-sm text-zinc-300 mb-4">{post.text}</p>}
-              <div className="flex items-center gap-4 text-xs text-zinc-500">
-                <button onClick={() => toggleLike(post.id)} className={`flex items-center gap-1 cursor-pointer transition-colors ${post.likes.some((l) => l.userId === currentUserId) ? "text-rose-500" : "hover:text-rose-400"}`} aria-label={post.likes.some((l) => l.userId === currentUserId) ? t("feed.unlike") : t("feed.like")}>
-                  <LazyHeart size={14} className={post.likes.some((l) => l.userId === currentUserId) ? "fill-rose-500 text-rose-500" : ""} /> {post._count.likes}
-                </button>
-                <span className="flex items-center gap-1"><MessageCircle size={14} /> {post._count.comments}</span>
-              </div>
-            </div>
-          ))}
-        </main>
-      </div>
-    </AuthGuard>
-  );
+export default async function FeedPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ cursor?: string }>;
+}) {
+  const { cursor } = await searchParams;
+  const session = await getSessionData();
+
+  if (!session?.user?.id) {
+    redirect("/login");
+  }
+
+  const data = await getCachedFeed(session.user.id, cursor);
+
+  return <FeedClient initialData={data} currentUserId={session.user.id} />;
 }
